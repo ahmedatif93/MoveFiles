@@ -1,0 +1,780 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Page MenuId="Declaration" PageId="CommercialInvoiceItem" ItemId="Declaration" onload="
+	  LoadCeramicProductManufacturers();ControlReadOnly('itemdetails','HSCodeDescription');ControlReadOnly('itemdetails','txtExemptionName');disableListLink('DeclarationInvoice','addItemCheck');setDeclaration_Page_title();eusiteConfigurationForItem('itemdetails');ControlReadOnly('itemdetails','TaricDescription');CheckReadOnlyforRestriction('itemdetails');DisableRelRef();hideLinks();disableItemCtrlsForReExport('tmpimport');DisableClearingAgent();HideOrgCode();enableExemptionForDR();disableForShortOfItem();HideMaqasaRow();disableCtrlsForRef();disableHSCodeDesc('itemdetails');disableExemption('itemdetails');EnableGCCDeposit();ShowOrHideAntiDumpingFields(true);ShowOrHideAntiDumpingFields_latest(true);HideControlsForIDDForCII();ShowOrHideCeramicProductManufacturers();DrBrokerhiddenfieldsCCRequest();"
+	  DataProfileId="CommercialInvoiceItems" PrintPreview="no" MidsectionOnly="no" NoData="no" Description="" DynaActionsList="NewHSCode,ViewJourney,NewCommercialInvoiceItemOneForSaveAndAdd,GetPackageQtyType,SearchConsignee" ExcludedActionsList="NewDRInvoiceItem" ExpirePage="no" ReportFormats="" EmbeddedSD="0" SDLifeTime="0" HTMLObject="" BGImageUrl="" LeftSideWidth="" RightSideWidth="">
+  <MidSection PageTitle="" ScriptsID="Declaration,ControlReadOnly,LoadPrintingHelper,AutoAlignLinksSc">
+    <Table cellPadding="0" cellSpacing="0" id="PageletTableEA" name="PageletTableEA" style="BORDER-RIGHT: black 1px dotted; BORDER-TOP: black 1px dotted; BORDER-LEFT: black 1px dotted; BORDER-BOTTOM: black 1px dotted" width="100%">
+      <HorizontalArray>
+        <Cell height="1">
+          <View id="SadAndCommercialInvoices" SourceNode="data.Declarationsrecords" RowSourceNodeName="Declarations" width="100%" height="100" xmlns:ClassObject="urn:ClassObject" xmlns:msesjs="urn:microsoft-com:enterprise:jscript:solution" xmlns:msxsl="urn:schemas-microsoft-com:xslt" xmlns:vw="vw">
+            <List id="declarationbill" SourceNode="HouseBillsrecords" RowSourceNodeName="HouseBills" WithRowSelector="no" WithPanelButtons="none" width="100%" />
+            <List id="DeclarationInvoice" SourceNode="CommercialInvoicesrecords" RowSourceNodeName="CommercialInvoices" WithRowSelector="no" WithPanelButtons="none" width="100%" />
+            <List id="DeclarationSpecificDuties" SourceNode="DeclarationDutiesrecords" RowSourceNodeName="DeclarationDuties" WithRowSelector="no" WithPanelButtons="none" width="100%" />
+            <List id="SadInvoiceAssociateDocuments" SourceNode="DeclarationDocumentsrecords" RowSourceNodeName="DeclarationDocuments" WithRowSelector="no" WithPanelButtons="none" width="100%" />
+          </View>
+        </Cell>
+      </HorizontalArray>
+      <HorizontalArray>
+        <Cell height="1">
+          <Form id="itemdetails" SourceNode="data.CommercialInvoiceItemsrecords" RowSourceNodeName="CommercialInvoiceItems" width="100%" height="100" TitleImageUrl="" Collapsible="" xmlns:ClassObject="urn:ClassObject" xmlns:msesjs="urn:microsoft-com:enterprise:jscript:solution" xmlns:msxsl="urn:schemas-microsoft-com:xslt" xmlns:vw="vw" />
+        </Cell>
+      </HorizontalArray>
+    </Table>
+  </MidSection>
+  <ServiceDocumentSchema>
+    <Relations>
+      <key name="key1">
+        <selector xpath="//OrganizationsForDeliveryOrder" />
+        <field xpath="@OrganizationId" />
+      </key>
+      <key name="key11">
+        <selector xpath="//People" />
+        <field xpath="@PersonalId" />
+      </key>
+      <key name="key2">
+        <selector xpath="//DeliveryOrders" />
+        <field xpath="@DeliveryOrderId" />
+      </key>
+      <key name="key3">
+        <selector xpath="//OrganizationsAddresses" />
+        <field xpath="@AddressId" />
+      </key>
+      <key name="key33">
+        <selector xpath="//PeopleAddresses" />
+        <field xpath="@AddressId" />
+      </key>
+      <keyref name="REF_Organizations" refer="key1">
+        <selector xpath="//DeliveryOrders" />
+        <field xpath="@ConsigneeId" />
+      </keyref>
+      <keyref name="REF_People" refer="key11">
+        <selector xpath="//DeliveryOrders" />
+        <field xpath="@ConsigneeId" />
+      </keyref>
+      <keyref name="REF_DeliveryOrders" refer="key2">
+        <selector xpath="//Declarations" />
+        <field xpath="@DeliveryOrderId" />
+      </keyref>
+      <keyref name="REF_OrganizationAddress" refer="key3">
+        <selector xpath="//DeliveryOrders" />
+        <field xpath="@ConsigneeAddressId" />
+      </keyref>
+      <keyref name="REF_PeopleAddress" refer="key33">
+        <selector xpath="//DeliveryOrders" />
+        <field xpath="@ConsigneeAddressId" />
+      </keyref>
+    </Relations>
+  </ServiceDocumentSchema>
+  <PageletClasses>
+    <View DefaultLang="eng" FormExceptionId="formexception" id="SadAndCommercialInvoices" ProvideLang="" RequiredMark="*" width="100%" CaptionId="" Available="">
+      <ControlSet type="formheader">
+        <HorizontalArray height="20">
+          <Cell id="Declaration_Page_title">
+            <MSESControl Attribute="Description" class="" SourceNode="data.Declarationsrecords.CustomsControlProceduresrecords.CustomsControlProcedures" type="label" width="20%" />
+          </Cell>
+        </HorizontalArray>
+      </ControlSet>
+      <ControlSet border="0" type="formbody">
+        <HorizontalArray height="25">
+          <Cell type="ncell" width="20%">
+            <MSESControl CaptionId="sad.sadnumber" class="form_field_label" type="label" />
+          </Cell>
+          <Cell colspan="2" width="35%">
+            <MSESControl Attribute="DeclarationNumber" id="sadnumber" InputCorrectFormatMessage="SiteFormErrors.errType1" InputRequiredMessage="sad.errmsgsadno" MaxLength="15" name="sadnumber" size="35" SourceNode="data.Declarationsrecords.Declarations" type="viewer" />
+          </Cell>
+          <Cell id="CellLinksHolder" colspan="5" rowspan="2" type="ncell">
+            <MSESControl action="OpenDeclarationDocuments" CaptionId="sad.viewCCPReqDocs" class="" id="viewCCPReqDocs" Linked="yes" name="viewCCPReqDocs" OnClick="callDeclDocsPopUp();" ToolTip="sad.viewCCPReqDocs" type="link" />
+            <!--<MSESControl border="1" height="10" ImageDir="normal" ImageUrl="Client/Themes/Blue/Images/spacer.gif" src="http://localhost/microclearkuwait/Client/Themes/Blue/Images/Client/Themes/Blue/Images/spacer.gif" type="space" width="10" />-->
+            <!--</Cell>
+      <Cell colspan="2" id="Cell1" type="ncell">-->
+            <MSESControl action="ListDeclarationHistory" CaptionId="sad.transactionhistory" class="" id="transactionhistory" Linked="yes" name="transactionhistory" OnClick="LockupScreen('','ListDeclarationHistory','ListDeclarationHistory',ProfileField('Declarations.DeclarationId','text') + '=\''+MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null)+'\'',800,300,true,false);return false;" ToolTip="sad.transactionhistory" type="link" />
+            <MSESControl action="ViewOrganization" CaptionId="sad.viewConsigneeDetails" class="" id="addbrowsebutton" Linked="yes" name="addbrowsebutton" OnClick="var OrgType = MCgetAttribute('data/Declarationsrecords/Declarations/@ConsigneeType',null);&#xA;var OrganizationId = MCgetAttribute('data/Declarationsrecords/Declarations/@ConsigneeId',null);&#xA;&#xA;if (OrgType =='o')&#xA;{&#xA;	LockupScreen('','ViewOrganizationPopUp','ViewOrganization',ProfileField('Organizations.OrganizationId','text') + '=N\''+ OrganizationId +'\'',750,350,true,false);return false;&#xA;}&#xA;else&#xA;{&#xA;	LockupScreen('','ViewEmployeePopUp','ViewEmployee',ProfileField('People.PersonalId','text') + '=N\''+ OrganizationId +'\'',750,350,true,false);return false;&#xA;}" ToolTip="sad.viewConsigneeDetails" type="link" />
+            <MSESControl action="ListPaymentTransactions" CaptionId="sad.paymentTransaction" class="" id="paymentTransaction" Linked="yes" name="paymentTransaction" OnClick="LockupScreen('','PaymentCollectionDetailsPg','ListPaymentTransactions',ProfileField('Payments.DeclarationId','text') + '=\''+MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null)+'\'',800,300,true,false);return false;" ToolTip="sad.paymentTransaction" type="link" />
+            <MSESControl action="ViewDeliveryOrder" CaptionId="sad.viewBOL" id="lnkVwBol" Linked="yes" OnClick="LockupScreen('','DeclartionPopUp','ViewCargo',ProfileField('CargoView.DeliveryOrderId','text') + '=\''+MCgetAttribute('data/Declarationsrecords/Declarations/@DeliveryOrderId',null)+ '\'',850,450,true,false);" ToolTip="sad.viewBOL" type="link" />
+            <!--added id="lnkVwBol"-->
+            <MSESControl action="ListHBItems" CaptionId="HBItems.ContainerDetails" id="ContainerDetails" Linked="yes" name="ContainerDetails" OnClick="LockupScreen('','ListHBItemsPg','ListHBItems',ProfileField('HBItems.HBId','text') + '=\''+MCgetAttribute('data/Declarationsrecords/Declarations/@HouseBillId',null)+ '\'',850,350,true,false);" ToolTip="HBItems.ContainerDetails" type="link" />
+            <MSESControl action="PrintDeclarationReceipt" CaptionId="sad.ViewDeclarationReceipts" class="" id="ViewDeclarationReceipts" name="ViewDeclarationReceipts" OnClick="return callDeclarationReceipts();" ToolTip=" sad.ViewDeclarationReceipts" type="link" />
+            <MSESControl action="ViewInspectionReportsForDO" CaptionId="sad.viewInspectionReport" id="nlblInspectionReg" name="nlblInspectionReg" OnClick="LockupScreen('','ViewInspectionReportsPopUp','ViewInspectionReportsForDO',ProfileField('Inspections.ReferenceId','text') + '=\''+MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationNumber',null)+ '\'',700,420,true,false);" SourceNode="data.Declarationsrecords.DeliveryOrdersrecords.DeliveryOrders" ToolTip="sad.viewInspectionReport" type="link" />
+            <MSESControl action="ListDeclarationVehicles" CaptionId="sad.DeclarationVehiclesList" class="" id="DeclarationVehicles" Linked="yes" name="DeclarationVehicles" OnClick="callDeclVehiclesPopUp();" ToolTip="sad.DeclarationVehiclesList" type="link" />
+            <MSESControl action="ListDeclarationHistory" CaptionId="sad.LinkedDeclaration" id="Refered" Linked="yes" name="" OnClick="onclickReferedLink();" ToolTip="sad.LinkedDeclaration" type="link" />
+            <MSESControl action="ViewInspectionReportsForDO" CaptionId="sad.viewInspectionRequest" id="lblInspectionReg" InView="yes" name="lblInspectionReg" OnClick="var DecId = MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId','');&#xA;var HBId = MCgetAttribute('data/Declarationsrecords/Declarations/@HouseBillId','');&#xA;var ManifestId = MCgetAttribute('data/Declarationsrecords/DeliveryOrdersrecords/DeliveryOrders/@ManifestId','');&#xA;var criteria = DecId  + ',' + HBId + ','+ ManifestId+',InspectionRequestFromDeclaration';&#xA;&#xA;LockupScreen('','InspectionRequestPLsPg','SearchInspections',criteria,700,370,true,false);" SourceNode="data.Declarationsrecords.DeliveryOrdersrecords.DeliveryOrders" ToolTip="sad.viewInspectionRequest" type="link" />
+            <MSESControl action="ListTransitRoute" CaptionId="sad.transitroute" id="transitroute" name="transitroute" OnClick="var sDeclarationId = MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null);&#xA;LockupScreen('','TransitRoutePg','OpenTransitRoute',sDeclarationId,500,210,true,false);&#xA;&#xA;" SourceNode="" ToolTip="sad.transitroute" type="link" />
+            <MSESControl action="ListDeclarationHistory" CaptionId="sad.viewRejectionHistory" id="RejectionHistory" InView="yes" name="RejectionHistory" OnClick="LockupScreen('','DeclarationHsLsPg','ListDeclarationHistory',ProfileField('Declarations.DeclarationId','text') + '=\''+MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null)+'\' RejectionHistory',800,280,true,false);return false;" SourceNode="" ToolTip="sad.viewRejectionHistory" type="link" />
+            <MSESControl action="ListRenewalHistory" CaptionId="sad.renewalHistory" class="" id="renewalHistory" Linked="yes" name="renewalHistory" OnClick="LockupScreen('','RenewalHistoryPg','ListRenewalHistory',ProfileField('Payments.DeclarationId','text') + '=\''+MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null)+'\'',800,300,true,false);return false;" ToolTip="sad.renewalHistory" type="link" />
+            <MSESControl action="ListItemsForDocsMissingMarkUp" CaptionId="sad.ItemsForDocsMiss" id="ItemsForDocsMiss" Linked="yes" name="ItemsForDocsMiss" OnClick="LockupScreen(MCgetAttribute('data/Declarationsrecords/Declarations/@StateId',null),'ListItemsForDocsMissingMarkUpPg','ListItemsForDocsMissingMarkUp',ProfileField('CommercialInvoices.DeclarationId','text') + '=\''+MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null)+ '\'',1000,700,true,false);return false;" ToolTip="sad.ItemsForDocsMiss" type="link" />
+            <MSESControl CaptionId="sad.MaqasaAttachment" class="" id="MaqasaAttachments" Linked="yes" name="MaqasaAttachments" OnClick="ViewMaqasaAttachments();" ToolTip="sad.MaqasaAttachment" type="link" />
+            <MSESControl action="ListDeclarationAEOList" CaptionId="sad.DeclAEOListLnk" id="lnkDeclarationAEOList" Linked="yes" name="lnkDeclarationAEOList" OnClick="CallDeclarationAEOList();" ToolTip="sad.DeclAEOListLnk" type="link" />
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray height="25">
+          <Cell type="ncell" width="20%">
+            <MSESControl CaptionId="sad.TmpDeclNo" class="form_field_label" type="label" />
+          </Cell>
+          <Cell colspan="1" width="35%">
+            <MSESControl Attribute="TempDeclNumber" id="TempDeclNumber" InputCorrectFormatMessage="SiteFormErrors.errType1" InputRequiredMessage="sad.errmsgsadno" MaxLength="15" name="sadnumber" size="35" SourceNode="data.Declarationsrecords.Declarations" type="viewer" />
+          </Cell>
+          <Cell type="ncell">
+            <MSESControl Attribute="ConsigneeId" class="textbox" id="ConsigneeId" name="ConsigneeId" SourceNode="data.Declarationsrecords.Declarations" SubType="text" type="hidden" />
+            <!--<MSESControl action="ViewOrganization" CaptionId="sad.viewConsigneeDetails" class="" id="addbrowsebutton" Linked="yes" name="addbrowsebutton" OnClick="var OrgType = MCgetAttribute('data/Declarationsrecords/Declarations/@ConsigneeType',null);&#xA;var OrganizationId = MCgetAttribute('data/Declarationsrecords/Declarations/@ConsigneeId',null);&#xA;&#xA;if (OrgType =='o')&#xA;{&#xA;	LockupScreen('','ViewOrganizationPopUp','ViewOrganization',ProfileField('Organizations.OrganizationId','text') + '=N\''+ OrganizationId +'\'',750,350,true,false);return false;&#xA;}&#xA;else&#xA;{&#xA;	LockupScreen('','ViewEmployeePopUp','ViewEmployee',ProfileField('People.PersonalId','text') + '=N\''+ OrganizationId +'\'',750,350,true,false);return false;&#xA;}" ToolTip="sad.viewConsigneeDetails" type="link" />-->
+          </Cell>
+          <Cell colspan="4" id="Cell1" type="ncell">
+            <!--<MSESControl action="ListPaymentTransactions" CaptionId="sad.paymentTransaction" class="" id="paymentTransaction" Linked="yes" name="paymentTransaction" OnClick="LockupScreen('','PaymentCollectionDetailsPg','ListPaymentTransactions',ProfileField('Payments.DeclarationId','text') + '=\''+MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null)+'\'',800,300,true,false);return false;" ToolTip="bill.paymentTransaction" type="link" />-->
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray height="25">
+          <Cell type="ncell" width="20%">
+            <MSESControl CaptionId="main.ImporterName" class="form_field_label" type="label" />
+          </Cell>
+          <Cell colspan="1" width="35%">
+            <MSESControl Attribute="ConsigneeId" id="Consignee" name="Consignee" RefConditionParamName="ConsigneeType" RefToSourceNodeParentName="*" type="viewer">
+              <ChooseRef ConditionParamValue="o" NameAttribute="LocalDescription" PrimeAttribute="OrganizationId" RefToSourceNodeName="OrganizationsForDeclaration" RefToSourceNodeParentName="OrganizationsForDeclarationrecords" />
+              <ChooseRef ConditionParamValue="p" NameAttribute="FirstName" PrimeAttribute="PersonalId" RefToSourceNodeName="PeopleForDeclaration" RefToSourceNodeParentName="PeopleForDeclarationrecords" />
+            </MSESControl>
+          </Cell>
+          <Cell type="ncell" />
+          <Cell type="ncell">
+            <!--<MSESControl action="ViewDeliveryOrder" CaptionId="sad.viewBOL" Linked="yes" OnClick="LockupScreen('','DeclartionPopUp','ViewCargo',ProfileField('CargoView.DeliveryOrderId','text') + '=\''+MCgetAttribute('data/Declarationsrecords/Declarations/@DeliveryOrderId',null)+ '\'',850,350,true,false);" ToolTip="profiles.viewBOL" type="link" />-->
+          </Cell>
+          <Cell colspan="4" id="Cell2" type="ncell">
+            <!--<MSESControl action="ListHBItems" CaptionId="HBItems.ContainerDetails" id="ContainerDetails" Linked="yes" name="ContainerDetails" OnClick="LockupScreen('','ListHBItemsPg','ListHBItems',ProfileField('HBItems.HBId','text') + '=\''+MCgetAttribute('data/Declarationsrecords/Declarations/@HouseBillId',null)+ '\'',850,350,true,false);" ToolTip="HBItems.ContainerDetails" type="link" />-->
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray height="25">
+          <Cell type="ncell" width="20%">
+            <MSESControl CaptionId="deliveryorder.Intercessor" class="form_field_label" type="label" />
+          </Cell>
+          <Cell colspan="1" width="35%">
+            <MSESControl Attribute="LocalDescription" id="InterCessorName" name="InterCessorName" SourceNode="data.Declarationsrecords.InterCessorDetailrecords.InterCessorDetail" type="viewer" />
+          </Cell>
+          <Cell type="ncell" />
+          <Cell type="ncell" />
+          <Cell colspan="4" id="Cell2" type="ncell" />
+        </HorizontalArray>
+        <HorizontalArray height="25">
+          <Cell type="ncell" width="20%">
+            <MSESControl CaptionId="deliveryorder.clearingagent" class="form_field_label" type="label" />
+          </Cell>
+          <Cell colspan="1" id="Cell2" type="ncell" width="35%">
+            <MSESControl Attribute="Name" id="vwrAgentId" name="vwrAgentId" RefToSourceNodeParentName="" SourceNode="data.Declarationsrecords.ListOrganizationrecords.ListOrganization" type="viewer" />
+          </Cell>
+          <Cell id="Cell43" type="ncell">
+            <!--<MSESControl action="PrintDeclarationReceipt" CaptionId="sad.ViewDeclarationReceipts" class="" id="ViewDeclarationReceipts" name="ViewDeclarationReceipts" OnClick="return callDeclarationReceipts();" type="link" />-->
+          </Cell>
+          <Cell type="ncell">
+            <!--<MSESControl action="ViewInspectionReportsForDO" CaptionId="sad.viewInspectionReport" id="nlblInspectionReg" name="nlblInspectionReg" OnClick="LockupScreen('','ViewInspectionReportsPopUp','ViewInspectionReportsForDO',ProfileField('Inspections.ReferenceId','text') + '=\''+MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationNumber',null)+ '\'',700,420,true,false);" SourceNode="data.Declarationsrecords.DeliveryOrdersrecords.DeliveryOrders" type="link" />-->
+          </Cell>
+          <Cell colspan="4" id="Cell3" type="ncell">
+            <!--<MSESControl action="ListDeclarationVehicles" CaptionId="sad.DeclarationVehiclesList" class="" id="DeclarationVehicles" Linked="yes" name="DeclarationVehicles" OnClick="callDeclVehiclesPopUp();" ToolTip="sad.DeclarationVehiclesList" type="link" />-->
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray height="25">
+          <Cell id="Cell1" type="ncell" width="20%">
+            <MSESControl CaptionId="sad.FinalDestination" class="form_field_label" id="FinalDestination" type="label" />
+          </Cell>
+          <Cell colspan="1" id="Cell2" type="ncell" width="35%">
+            <MSESControl Attribute="Name" id="FinalDest" name="FinalDest" SourceNode="data.Declarationsrecords.FinalDestinationrecords.FinalDestination" type="viewer" />
+          </Cell>
+          <Cell id="Cell3" type="ncell" />
+          <!--<Cell type="lcell">
+        <MSESControl action="ListDeclarationHistory" CaptionId="sad.LinkedDeclaration" id="Refered" Linked="yes" name="" OnClick="onclickReferedLink();" type="link" />
+      </Cell>-->
+          <Cell id="lblExitport" width="10%" type="ncell">
+            <MSESControl CaptionId="QMS.Exitport" class="form_field_label" id="lblExitPort" type="label" />
+          </Cell>
+          <Cell type="ncell">
+            <MSESControl Attribute="Name" id="ExitportName" MaxLength="50" name="ExitportName" size="35" SourceNode="data.Declarationsrecords.FinalExitPortsrecords.FinalExitPorts" type="viewer" />
+          </Cell>
+          <Cell type="lcell" colspan="4" />
+          <Cell id="Cell3" type="ncell" />
+        </HorizontalArray>
+        <HorizontalArray height="25" id="DirectPassRow">
+          <Cell id="Cell61" type="ncell" width="20%">
+            <MSESControl CaptionId="sad.directpass" class="form_field_label" id="DOCAvailability" type="label" />
+          </Cell>
+          <Cell colspan="7" id="Cell62" type="ncell" width="35%">
+            <MSESControl CaptionId="IsLocal.y" class="form_field_label" id="Available" type="label" />
+            <MSESControl Attribute="IsDirectPass" Checked="no" id="yesDirectPass" name="IsDirectPass" ReadOnly="yes" Required="" SourceNode="data.Declarationsrecords.Declarations" type="radio" value="y" />
+            <MSESControl CaptionId="IsLocal.0" class="form_field_label" id="NotAvailable" type="label" />
+            <MSESControl Attribute="IsDirectPass" Checked="yes" id="noDirectPass" name="IsDirectPass" ReadOnly="yes" Required="" SourceNode="data.Declarationsrecords.Declarations" type="radio" value="n" />
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray height="25" id="RowMaqasa">
+          <Cell id="Cell1" type="ncell" width="20%">
+            <MSESControl CaptionId="sad.Maqasa" class="form_field_label" type="label" />
+          </Cell>
+          <Cell colspan="2" id="Cell2" type="ncell" width="35%">
+            <MSESControl Attribute="Maqasa" Enabled="no" id="IsMaqasa" name="IsMaqasa" OnClick="checkForMaqasa(this.form);&#xA;" SourceNode="data.Declarationsrecords.Declarations" type="checkbox" value="1" />
+          </Cell>
+          <Cell colspan="2" id="Cell1" type="ncell" width="35%">
+            <!--<MSESControl CaptionId="sad.MaqasaAttachment" class="" id="MaqasaAttachments" Linked="yes" name="MaqasaAttachments" OnClick="ViewMaqasaAttachments();" type="link" />-->
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray height="25">
+          <Cell id="Cell1" type="ncell" width="20%">
+            <MSESControl CaptionId="common.status" class="form_field_label" type="label" />
+          </Cell>
+          <Cell colspan="2" id="Cell2" type="ncell" width="35%">
+            <MSESControl Attribute="StateName" class="view-text-redbold" DisplayIfData="yes" Linked="no" NameAttribute="StateName" PrimeAttribute="StateId" RefToSourceNodeName="WorkflowItemStates" RefToSourceNodeParentName="WorkflowItemStatesrecords" SourceNode="data.Declarationsrecords.WorkflowItemStatesrecords.WorkflowItemStates" type="label" />
+          </Cell>
+          <Cell id="Cell3" type="ncell">
+            <!--<MSESControl action="ViewInspectionReportsForDO" CaptionId="sad.viewInspectionRequest" id="lblInspectionReg" InView="yes" name="lblInspectionReg" OnClick="LockupScreen('','InspectionRequestPLsPg','SearchInspections',ProfileField('Inspections.ReferenceId','text') + '=\''+MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationNumber',null)+ '\'' + ' or  [Inspections].[ReferenceId] in (SELECT     Manifests.MRNumber FROM Manifests INNER JOIN HouseBills ON Manifests.ManifestId = HouseBills.ManifestId WHERE HouseBills.HouseBillId ' + '=\''+MCgetAttribute('data/Declarationsrecords/Declarations/@HouseBillId',null)+ '\')'  ,700,370,true,false);" SourceNode="data.Declarationsrecords.DeliveryOrdersrecords.DeliveryOrders" type="link" />-->
+            <!--<MSESControl action="ViewInspectionReportsForDO" CaptionId="sad.viewInspectionRequest" id="lblInspectionReg" InView="yes" name="lblInspectionReg" OnClick="var DecId = MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId','');&#xA;var HBId = MCgetAttribute('data/Declarationsrecords/Declarations/@HouseBillId','');&#xA;var ManifestId = MCgetAttribute('data/Declarationsrecords/DeliveryOrdersrecords/DeliveryOrders/@ManifestId','');&#xA;var criteria = DecId  + ',' + HBId + ','+ ManifestId+',InspectionRequestFromDeclaration';&#xA;&#xA;LockupScreen('','InspectionRequestPLsPg','SearchInspections',criteria,700,370,true,false);" SourceNode="data.Declarationsrecords.DeliveryOrdersrecords.DeliveryOrders" type="link" />
+      </Cell>
+      <Cell colspan="4" id="Cell4" type="ncell" />
+    </HorizontalArray>
+    <HorizontalArray height="25" id="TransitRouteRow">
+      <Cell id="Cell1" type="ncell" width="20%" />
+      <Cell colspan="2" id="Cell2" type="ncell" width="35%" />
+      <Cell id="Cell3" type="ncell">
+        <MSESControl action="ListTransitRoute" CaptionId="sad.transitroute" id="transitroute" name="transitroute" OnClick="var sDeclarationId = MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null);&#xA;LockupScreen('','TransitRoutePg','OpenTransitRoute',sDeclarationId,500,210,true,false);&#xA;&#xA;" SourceNode="" type="link" />-->
+          </Cell>
+          <Cell colspan="4" id="Cell4" type="ncell" />
+        </HorizontalArray>
+        <HorizontalArray height="25" id="rowReject">
+          <Cell type="ncell" width="20%" />
+          <Cell colspan="2" type="ncell" width="35%" />
+          <Cell id="Cell53" type="ncell">
+            <MSESControl CaptionId="sad.rejcount" class="form_field_label" id="lblRejectCount" type="label" />
+            <MSESControl border="1" height="10" ImageDir="normal" ImageUrl="Client/Themes/Blue/Images/spacer.gif" src="http://localhost/microclearkuwait/Client/Themes/Blue/Images/Client/Themes/Blue/Images/spacer.gif" type="space" width="10" />
+            <MSESControl Attribute="RejectCount" id="vwrRejCount" name="vwrRejCount" type="viewer" />
+          </Cell>
+          <Cell colspan="4" id="Cell53" type="ncell">
+            <!--<MSESControl action="ListDeclarationHistory" CaptionId="sad.viewRejectionHistory" id="RejectionHistory" InView="yes" name="RejectionHistory" OnClick="LockupScreen('','DeclarationHsLsPg','ListDeclarationHistory',ProfileField('Declarations.DeclarationId','text') + '=\''+MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null)+'\' RejectionHistory',800,280,true,false);return false;" SourceNode="" type="link" />-->
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray id="rowAdditionalInfo1">
+          <Cell colspan="8" type="ncell">
+            <MSESControl CaptionId="journey.additionalinfo" class="view-text-pad" type="label" />
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray id="rowAdditionalInfo2">
+          <Cell type="ncell">
+            <MSESControl CaptionId="sad.expiryperiod" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="Cell4" type="ncell">
+            <MSESControl Attribute="ExpiryPeriod" id="expiryperiod" InputCorrectFormatMessage="SiteFormErrors.errType1" InputRequiredMessage="sad.errmsgsadno" MaxLength="5" name="expiryperiod" size="35" SourceNode="data.Declarationsrecords.Declarations" type="viewer" />
+            <MSESControl border="1" height="10" ImageDir="normal" ImageUrl="Client/Themes/Blue/Images/spacer.gif" src="http://localhost/MicroClearKuwait/Client/Themes/Blue/Images/Client/Themes/Blue/Images/spacer.gif" type="space" width="10" />
+            <MSESControl Attribute="ExpiryType" id="expirytype" InputCorrectFormatMessage="SiteFormErrors.errType1" InputRequiredMessage="sad.errmsgsadno" MaxLength="10" name="expirytype" NameAttribute="Name" PrimeAttribute="TypeId" RefToSourceNodeName="ExpiryType" RefToSourceNodeParentName="ExpiryTyperecords" size="35" SourceNode="data.Declarationsrecords.Declarations" type="viewer" />
+          </Cell>
+          <Cell id="Cell3" type="ncell">
+            <MSESControl CaptionId="sad.RecTempExpDt" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="Cell2" type="ncell">
+            <MSESControl Attribute="TempAdmissionExpiredOn" DisplayIfData="yes" id="TempAdmissionExpiredOn" name="TempAdmissionExpiredOn" SubType="datetime" type="viewer" />
+          </Cell>
+          <Cell id="Cell1" type="ncell">
+            <!--<MSESControl action="ListRenewalHistory" CaptionId="sad.renewalHistory" class="" id="renewalHistory" Linked="yes" name="renewalHistory" OnClick="LockupScreen('','RenewalHistoryPg','ListRenewalHistory',ProfileField('Payments.DeclarationId','text') + '=\''+MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null)+'\'',800,300,true,false);return false;" ToolTip="bill.renewalHistory" type="link" />-->
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray>
+          <Cell type="ncell">
+            <MSESControl CaptionId="bill.Remarks" class="form_field_label" type="label" />
+          </Cell>
+          <Cell colspan="2">
+            <MSESControl Attribute="Remarks" Linked="no" type="viewer" />
+          </Cell>
+          <Cell colspan="2">
+            <MSESControl border="1" height="10" ImageDir="normal" ImageUrl="Client/Themes/Blue/Images/spacer.gif" src="http://localhost/microclearkuwait/Client/Themes/Blue/Images/Client/Themes/Blue/Images/spacer.gif" type="space" width="30" />
+            <!--<MSESControl action="ListItemsForDocsMissingMarkUp" CaptionId="sad.ItemsForDocsMiss" id="ItemsForDocsMiss" Linked="yes" name="ItemsForDocsMiss" OnClick="LockupScreen(MCgetAttribute('data/Declarationsrecords/Declarations/@StateId',null),'ListItemsForDocsMissingMarkUpPg','ListItemsForDocsMissingMarkUp',ProfileField('CommercialInvoices.DeclarationId','text') + '=\''+MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null)+ '\'',1000,700,true,false);return false;" ToolTip="sad.ItemsForDocsMiss" type="link" />-->
+          </Cell>
+        </HorizontalArray>
+      </ControlSet>
+      <Hiddens>
+        <MSESControl Attribute="DeclarationId" id="DeclarationId" name="DeclarationId" SourceNode="data.Declarationsrecords.Declarations" type="hidden" />
+        <MSESControl Attribute="CustomsControlProcedureId" id="CustomsControlProcedureId" name="CustomsControlProcedureId" SourceNode="data.Declarationsrecords.Declarations" type="hidden" />
+        <MSESControl Attribute="DecDateCreated" class="textbox" id="DeclarationVDateCheck" name="DeclarationVDateCheck" SourceNode="data.Declarationsrecords.Declarations" SubType="text" type="hidden" />
+        <MSESControl Attribute="OwnerOrgId" class="textbox" id="hdOwnerOrgId" name="OwnerOrgId" SourceNode="data.Declarationsrecords.Declarations" SubType="text" type="hidden" />
+      </Hiddens>
+    </View>
+    <List CaptionId="bill.listheader" id="declarationbill" NoDataMsg="nodata.HouseBills" width="100%">
+      <ListTemplate>
+        <HorizontalArray>
+          <Cell CaptionId="bill.billnumber" Hidden="" name="HouseBillNumber" NoSort="" SortByAttribute="HouseBillNumber" SortNode="" type="lcell" width="">
+            <MSESControl action="ViewHouseBill" Attribute="HouseBillNumber" InView="yes" name="HouseBillNumber" OnClick="LockupScreen('','ViewHouseBillPopUp','ViewHouseBill',ProfileField('HouseBills.HouseBillId','text') + '=\''+tdValue(thisRowID,'HouseBillId')+'\'',600,300,true,false);return false;" type="listlink" />
+          </Cell>
+          <Cell CaptionId="" Hidden="yes" name="HouseBillId" NoSort="" SortByAttribute="HouseBillId" SortNode="" type="lcell" width="">
+            <MSESControl Attribute="HouseBillId" InView="yes" name="HouseBillId" SubType="text" type="listlabel" />
+          </Cell>
+          <Cell CaptionId="bill.description" Hidden="" name="Description" NoSort="" SortByAttribute="Description" SortNode="" type="lcell" width="">
+            <MSESControl Attribute="Description" InView="yes" name="Description" type="listlabel" />
+          </Cell>
+          <Cell CaptionId="bill.quantitymanifested" Hidden="" name="QuantityManifested" NoSort="" SortByAttribute="QuantityManifested" SortNode="" type="lcell" width="">
+            <MSESControl Attribute="QuantityManifested" CaptionAlign="right" DataAlign="right" InView="yes" name="QuantityManifested" type="listlabel" />
+          </Cell>
+          <Cell CaptionId="" Hidden="" name="" NoSort="" SortByAttribute="" SortNode="" type="lcell" width="5%">
+            <MSESControl InView="yes" type="listlabel" />
+          </Cell>
+          <Cell CaptionId="bill.billdate" Hidden="" name="HouseBillDate" NoSort="" SortByAttribute="HouseBillDate" SortNode="" type="lcell" width="">
+            <MSESControl Attribute="HouseBillDate" InView="yes" name="HouseBillDate" SubType="date" type="listlabel" />
+          </Cell>
+          <Cell CaptionId="bill.splithousebill" Hidden="" name="IsSplitHouseBill" NoSort="" SortByAttribute="IsSplitHouseBill" SortNode="" type="lcell" width="">
+            <MSESControl Attribute="IsSplitHouseBill" DecoderSection="IsSplitHouseBill" InView="yes" name="IsSplitHouseBill" type="listlabel" />
+          </Cell>
+          <Cell CaptionId="manifest.mrn" Hidden="" name="ManifestId" NoSort="" SortByAttribute="MRNumber" SortNode="Manifests" type="lcell" width="">
+            <MSESControl action="ViewManifest" Attribute="ManifestId" InView="yes" name="ManifestId" NameAttribute="MRNumber" OnClick="LockupScreen('','ViewManifestPopUp','ViewManifest',ProfileField('Manifests.MRNumber','text') + '=N\''+tdValue(thisRowID,'ManifestId')+'\'',700,400,true,false);return false;" PrimeAttribute="ManifestId" RefToSourceNodeName="Manifests" RefToSourceNodeParentName="Manifestsrecords" type="listlink" />
+          </Cell>
+        </HorizontalArray>
+      </ListTemplate>
+      <ListPanel />
+    </List>
+    <List CaptionId="invoice.ViewHeader" id="DeclarationInvoice" NoDataMsg="nodata.CommercialInvoices" width="100%">
+      <ListTemplate>
+        <HorizontalArray>
+          <Cell CaptionId="main.Invoice Number" Hidden="" name="InvoiceNumber" NoSort="" SortByAttribute="InvoiceNumber" SortNode="" type="lcell" width="">
+            <MSESControl action="ViewCommercialInvoice" Attribute="InvoiceNumber" InView="yes" name="InvoiceNumber" OnClick="LockupScreen('','ViewCommercialInvoicePopUp','ViewCommercialInvoice',ProfileField('CommercialInvoices.CommercialInvoiceId','text') + '=\''+tdValue(thisRowID,'CommercialInvoiceId')+'\'',1000,600,true,false);return false;" type="listlink" />
+          </Cell>
+          <Cell CaptionId="invoice.invoicenumber" Hidden="yes" name="InvoiceOrderNumber" NoSort="" SortByAttribute="InvoiceOrderNumber" SortNode="" type="lcell" width="">
+            <MSESControl action="ViewCommercialInvoice" Attribute="InvoiceOrderNumber" InView="yes" name="InvoiceNumber" OnClick="LockupScreen('','ViewCommercialInvoicePopUp','ViewCommercialInvoice',ProfileField('CommercialInvoices.CommercialInvoiceId','text') + '=\''+tdValue(thisRowID,'CommercialInvoiceId')+'\'',900,600,true,false);return false;" type="listlink" />
+          </Cell>
+          <Cell CaptionId="PayPaidFor.HouseBills" Hidden="" name="HouseBillNumber" NoSort="" SortByAttribute="HouseBillNumber" SortNode="" type="lcell" width="">
+            <MSESControl Attribute="CCRHouseBillId" InView="yes" name="HouseBillId" NameAttribute="HouseBillNumber" PrimeAttribute="HouseBillId" RefToSourceNodeName="CCRHouseBills" RefToSourceNodeParentName="CCRHouseBillsrecords" type="listlabel" />
+          </Cell>
+          <Cell CaptionId="invoice.suppliername" Hidden="" name="SupplierName" NoSort="" SortByAttribute="SupplierName" SortNode="" type="lcell" width="">
+            <MSESControl Attribute="SupplierName" InView="yes" name="SupplierName" type="listlabel" />
+          </Cell>
+          <Cell CaptionId="sad.invoicetype" Hidden="" name="lblinvoicetype" NoSort="" SortByAttribute="Code" SortNode="CommercialInvoiceTypes" type="lcell" width="">
+            <MSESControl Attribute="TypeId" InView="yes" name="invoicetype" NameAttribute="Code" PrimeAttribute="TypeId" RefToSourceNodeName="CommercialInvoiceTypes" RefToSourceNodeParentName="CommercialInvoiceTypesrecords" type="listlabel" />
+          </Cell>
+          <Cell CaptionId="" Hidden="yes" name="CommercialInvoiceId" NoSort="" SortByAttribute="CommercialInvoiceId" SortNode="" type="lcell" width="">
+            <MSESControl Attribute="CommercialInvoiceId" InView="yes" name="CommercialInvoiceId" type="listlabel" />
+          </Cell>
+          <Cell CaptionId="invoice.invoicedate" Hidden="yes" name="InvoiceDate" NoSort="" SortByAttribute="InvoiceDate" SortNode="" type="lcell" width="">
+            <MSESControl Attribute="InvoiceDate" InView="yes" name="InvoiceDate" SubType="date" type="listlabel" />
+          </Cell>
+          <Cell CaptionAlign="right" CaptionId="payment.amount" DataAlign="right" Hidden="" name="InvoiceAmount" NoSort="" SortByAttribute="InvoiceAmount" SortNode="" type="lcell" width="">
+            <MSESControl Attribute="InvoiceAmount" InView="yes" name="InvoiceAmount" type="listlabel" />
+          </Cell>
+          <Cell CaptionId="itemdetails.currency" Hidden="" name="CurrencyId" NoSort="" SortByAttribute="CurrencyName" SortNode="Currencies" type="lcell" width="">
+            <MSESControl Attribute="CurrencyId" InView="yes" name="CurrencyId" NameAttribute="CurrencyName" PrimeAttribute="CurrencyId" RefToSourceNodeName="Currencies" RefToSourceNodeParentName="Currenciesrecords" type="listlabel" />
+          </Cell>
+          <Cell CaptionId="invoice.countryofsupply" Hidden="" name="countryofsupply" NoSort="" SortByAttribute="Name" SortNode="CountriesForInvoice" type="lcell" width="">
+            <MSESControl Attribute="CountryOfOrigin" InView="yes" name="CountryOfOrigin" NameAttribute="Name" PrimeAttribute="LocationId" RefToSourceNodeName="CountriesForInvoice" RefToSourceNodeParentName="CountriesForInvoicerecords" type="listlabel" />
+          </Cell>
+          <Cell CaptionAlign="right" CaptionId="bill.weight" DataAlign="right" Hidden="" name="Weight" NoSort="" SortByAttribute="Weight" SortNode="" type="lcell" width="">
+            <MSESControl Attribute="Weight" EnforceFormat="yes" InView="yes" name="Weight" nPres="3" SubType="number" type="listlabel" />
+          </Cell>
+          <Cell CaptionAlign="right" CaptionId="bill.GrossWeight" DataAlign="right" Hidden="" name="Gross" NoSort="" SortByAttribute="Gross" SortNode="" type="lcell" width="">
+            <MSESControl Attribute="Gross" EnforceFormat="yes" InView="yes" name="Gross" nPres="3" SubType="number" type="listlabel" />
+          </Cell>
+          <Cell CaptionId="" Hidden="" name="" NoSort="" SortByAttribute="" SortNode="" type="lcell" width="1%">
+            <MSESControl InView="yes" name="" type="listlabel" />
+          </Cell>
+          <Cell CaptionAlign="right" CaptionId="main.ExchangeRates" DataAlign="right" Hidden="" name="ExchangeRate" NoSort="" SortByAttribute="ExchangeRate" SortNode="" type="lcell" width="">
+            <MSESControl Attribute="ExchangeRate" CaptionAlign="right" DataAlign="right" InView="yes" name="ExchangeRate" type="listlabel" />
+          </Cell>
+          <Cell Hidden="" name="EditInvoice" NoSort="" SortByAttribute="" SortNode="" type="lcell" width="">
+            <MSESControl action="OpenCommercialInvoiceOne" CaptionId="common.edit" FixedPrompt="yes" InView="yes" name="" OnClick="if(checkIDD('Edit')==true){if (editInvoicePage()==false){return}}else {return false}" type="listlink">
+              <param Attribute="CommercialInvoiceId" name="CommercialInvoices.CommercialInvoiceId" SourceNode="data.CommercialInvoicesrecords.CommercialInvoices" withquote="yes" />
+            </MSESControl>
+          </Cell>
+          <Cell Hidden="" name="NewItem" NoSort="" SortByAttribute="" SortNode="" type="lcell" width="">
+            <MSESControl action="NewCommercialInvoiceItemOne" CaptionId="bill.additem" FixedPrompt="yes" InView="yes" name="NewItem" OnClick="if(checkIDD('NewCII')==true){if (newInvoiceItemPage()==false){return}}else {return false}" type="listlink">
+              <param Attribute="CommercialInvoiceId" name="CommercialInvoices.CommercialInvoiceId" SourceNode="data.CommercialInvoicesrecords.CommercialInvoices" withquote="yes" />
+            </MSESControl>
+          </Cell>
+          <Cell Hidden="" name="" NoSort="" SortByAttribute="" SortNode="" type="lcell" width="">
+            <MSESControl action="ListCommercialInvoiceHistory" CaptionId="common.ListHistory" FixedPrompt="yes" InView="yes" name="" OnClick="LockupScreen('','ListCommercialInvoiceHistory','ListCommercialInvoiceHistory',ProfileField('CommercialInvoices.CommercialInvoiceId','text') + '=\''+tdValue(thisRowID,'CommercialInvoiceId')+'\'',800,300,true,false);return false;" type="listlink" />
+          </Cell>
+          <Cell Hidden="" name="" NoSort="" SortByAttribute="" SortNode="" type="lcell" width="">
+            <MSESControl action="OpenOGDAppDetails" CaptionId="bill.ViewItem" FixedPrompt="yes" InView="yes" name="" OnClick="LockupScreen('','ListOGDAppDetailsPg','OpenOGDAppDetails',ProfileField('CommercialInvoices.CommercialInvoiceId','text') + '=\''+tdValue(thisRowID,'CommercialInvoiceId')+'\'',800,300,true,false);return false;" type="listlink" />
+          </Cell>
+        </HorizontalArray>
+      </ListTemplate>
+      <ListPanel>
+        <MSESControl action="DeleteCommercialInvoice" CaptionId="common.delete" id="delete" name="delete" OnClick="if(checkIDD('DeleteCINV')){if(fwDeleteConfirmation(this))  {return ExecuteListAction('setParameterList(global_arrRegParameters, Array(\'\',\'DeleteCommercialInvoice\', \'\', \'OpenDeclaration\',ProfileField(\'Declarations.DeclarationId\',\'text\') + \'=\\\''+getParent(this,'form').DeclarationId.value+ '\\\'\', \'SAD\'))','noexecution');pageSubmit(null,true);} else return false;} else return false; " ToolTip="common.delete" type="submit" />
+        <MSESControl action="DisAssociateCommercialInvoice" CaptionId="common.disassociate" id="disassociate" name="disassociate" OnClick="if(checkIDD('DeleteCINV')){if(fwDisAssociateConfirmation(this))  {return ExecuteListAction('setParameterList(global_arrRegParameters, Array(\'\',\'DisAssociateCommercialInvoice\', \'\', \'OpenDeclaration\',ProfileField(\'Declarations.DeclarationId\',\'text\') + \'=\\\''+getParent(this,'form').DeclarationId.value+ '\\\'\', \'SAD\'))','noexecution');pageSubmit(null,true);}} else return false; " ToolTip="common.disassociate" type="submit" />
+        <MSESControl action="NewCommercialInvoiceOne" CaptionId="invoice.heading1" id="addinvoice" name="addinvoice" OnClick="if(checkIDD('NewCINV')){selectInvoicePage(this.form);}" ToolTip="invoice.heading1" type="button" />
+        <MSESControl action="ListUnAssociatedCommercialInvoice" CaptionId="sad.associateinvoice" id="associateinvoice" name="associateinvoice" OnClick="if(checkIDD('NewCINV')){GetSelectedNodesScreen(this.form.name,'ListUnAssociatedCommercialInvoice','ListUnAssociatedCommercialInvoice',MCgetAttribute('data/Declarationsrecords/Declarations/@RefDeclarationId',null),700,400,true,false,'CommercialInvoices','DeclarationId','','data.Declarationsrecords.Declarations.CommercialInvoicesrecords',Array('CommercialInvoiceId'));}" ToolTip="sad.associateinvoice" type="button" />
+        <MSESControl action="GetInvoiceDetailsForDR" CaptionId="sad.createinvoiceitem" id="createinvoiceitem" name="createinvoiceitem" OnClick="setParameterList(global_arrRegParameters, Array('','GetInvoiceDetailsForDR','','OpenDeclaration',ProfileField('Declarations.DeclarationId','text') + '=\''+getParent(this,'form').DeclarationId.value+'\'','DirectReleaseSAD','1'));" ToolTip="sad.createinvoiceitem" type="submit" />
+        <MSESControl action="" CaptionId="sad.assrefinv" id="assrefinv" name="assrefinv" OnClick="//GetSelectedNodesScreen(this.form.name,'ListUnAssociatedCommercialInvoice','ListUnAssociatedCommercialInvoice','',700,400,true,false,'CommercialInvoices','DeclarationId',MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null),'data.Declarationsrecords.Declarations.CommercialInvoicesrecords',Array('CommercialInvoiceId'));&#xA;if(checkBill()=='true')&#xA;{&#xA;	var criteria = ProfileField('DeclarationReferences.DeclarationId') + '=\'' + MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId','')+ '\'';&#xA;	}&#xA;else if (checkRefDecId() == 'true')&#xA;{&#xA;	var criteria = ProfileField('Declarations.DeclarationId') + '=\'' + MCgetAttribute('data/Declarationsrecords/Declarations/@RefDeclarationId','')+ '\'';&#xA;	}&#xA;&#xA;GetSelectedNodesScreen(&#xA;this.form.name,&#xA;'RefInvoiceAssPg',&#xA;'ListRefInv',&#xA;criteria,&#xA;700,&#xA;400,&#xA;true,&#xA;false,&#xA;'CommercialInvoices',&#xA;'DeclarationId',&#xA;MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null),&#xA;'data.Declarationsrecords.Declarations.CommercialInvoicesrecords',&#xA;Array('CommercialInvoiceId'));&#xA;" ToolTip="sad.assrefinv" type="button" />
+        <MSESControl action="NewDRInvoiceItem" CaptionId="sad.addItemForDR" id="addItemForDR" name="addItemForDR" OnClick="NewDRInvoiceItem(this.form);" ToolTip="sad.addItemForDR" type="button" />
+        <!--<MSESControl action="" CaptionId="BondedCargo.UploadInvoice" id="btnInvoiceUpload" name="btnInvoiceUpload" OnClick="if(confirm(msgDictionary('errBWHDeleteInv'))){setParameterList(global_arrRegParameters, Array('','UploadBWHDR',getParameter('actioncriteria',''),'UploadBWHDR',getParameter('actioncriteria',''),'UploadBWHDRFrPg','1'));pageSubmit(null,false);}" type="button" />-->
+        <MSESControl action="" CaptionId="BondedCargo.UploadInvoice" id="btnInvoiceUpload" name="btnInvoiceUpload" OnClick="if(confirm(msgDictionary('errBWHDeleteInv'))){setParameterList(global_arrRegParameters, Array('','UploadBWHDR',getParameter('actioncriteria',''),'UploadBWHDR',getParameter('actioncriteria',''),'UploadBWHDRFrPg','1'));pageSubmit(null,false);}" type="button" />
+      </ListPanel>
+    </List>
+    <List CaptionId="sad.DeclarationSpecificDutiesList" id="DeclarationSpecificDuties" NoDataMsg="nodata.DeclarationSpecificDuties" width="100%">
+      <ListTemplate>
+        <HorizontalArray>
+          <Cell CaptionId="tariff.dutyid" Hidden="" name="DutyId" NoSort="" SortByAttribute="DutyId" SortNode="" type="lcell" width="20%">
+            <MSESControl action="ViewDuty" Attribute="DutyId" InView="yes" name="DutyId" OnClick="" type="listlabel" />
+          </Cell>
+          <Cell CaptionId="sad.value" Hidden="" name="DutyValue" NoSort="" SortByAttribute="DutyValue" SortNode="" type="lcell" width="30%">
+            <MSESControl Attribute="DutyValue" InView="yes" name="DutyValue" OnClick="" type="listlabel" />
+          </Cell>
+          <Cell CaptionId="sad.valuetype" Hidden="" name="CalculationFormulaId" NoSort="" SortByAttribute="CalculationFormulaId" SortNode="" type="lcell" width="50%">
+            <MSESControl Attribute="CalculationFormulaId" InView="yes" name="CalculationFormulaId" OnClick="" type="listlabel" />
+          </Cell>
+        </HorizontalArray>
+      </ListTemplate>
+      <ListPanel>
+        <MSESControl action="DeleteDeclarationSpecificDuty" available="AfterDeclarationSubmit" availableDP="Declarations" CaptionId="common.delete" id="deleteDuties" name="deleteDuties" OnClick="if(fwDeleteConfirmation(this))  {return ExecuteListAction('setParameterList(global_arrRegParameters, Array(\'\',\'DeleteDeclarationSpecificDuty\', \'\', \'OpenDeclaration\',ProfileField(\'Declarations.DeclarationId\',\'text\')\+\'=\\\''+getParent(this,'form').DeclarationId.value+'\\\'\', \'SAD\'))','noexecution');} else return false; " ToolTip="tariff.deleteduties" type="submit" />
+        <MSESControl action="ListDeclarationSpecificDuty" available="AfterDeclarationSubmit" availableDP="Declarations" CaptionId="tariff.associateduty" id="browsebutton" name="browsebutton" OnClick="if(validateIDDDutycal()){GetDeclarationSpecificDuty(this.form.name);}" ToolTip="tariff.associateduty" type="button" />
+      </ListPanel>
+    </List>
+    <List CaptionId="sad.documentlistheader" id="SadInvoiceAssociateDocuments" NoDataMsg="nodata.documents" width="100%">
+      <ListTemplate>
+        <HorizontalArray>
+          <Cell CaptionId="sad.documentname" Hidden="" name="Name" NoSort="" SortByAttribute="Name" SortNode="Documents" type="lcell" width="40%">
+            <MSESControl Attribute="Name" InView="yes" name="Name" RefToSourceNodeName="" RefToSourceNodeParentName="" type="listlabel" />
+          </Cell>
+        </HorizontalArray>
+      </ListTemplate>
+      <ListPanel />
+    </List>
+    <Form DefaultLang="eng" FormExceptionId="formexception" id="itemdetails" ProvideLang="" RequiredMark="*" width="100%" Updated="Gopi" OnBeforeSubmit="" formenctype="application/x-www-form-urlencoded" CaptionId="" Available="">
+      <Hiddens>
+        <MSESControl Attribute="DeclarationId" id="DeclarationId" name="DeclarationId" SourceNode="data.Declarationsrecords.Declarations" type="hidden" />
+        <MSESControl Attribute="Phase" id="Phase" name="Phase" SourceNode="data.Declarationsrecords.CustomsControlProceduresrecords.CustomsControlProcedures" type="hidden" />
+        <MSESControl Attribute="CommercialInvoiceItemId" id="CommercialInvoiceItemId" name="CommercialInvoiceItemId" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" type="hidden" />
+        <MSESControl Attribute="CommercialInvoiceId" id="CommercialInvoiceId" name="CommercialInvoiceId" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" type="hidden" />
+        <MSESControl Attribute="CountryOfOrigin" id="CountryOfOrigin" name="CountryOfOrigin" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" type="hidden" />
+        <MSESControl Attribute="UNCode" id="CountryOfOriginCode" name="CountryOfOriginCode" SourceNode="data.CommercialInvoiceItemsrecords.CountriesForInvoiceItemsrecords.CountriesForInvoiceItems" type="hidden" />
+        <MSESControl Attribute="TariffItemId" class="textbox" id="TariffItemId" name="TariffItemId" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" SubType="text" type="hidden" />
+        <MSESControl Attribute="TaricSubheadingId" id="TaricSubheadingId" name="TaricSubheadingId" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" type="hidden" />
+        <MSESControl Attribute="CurrencyId" id="CurrencyId" name="CurrencyId" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" type="hidden" />
+        <MSESControl Attribute="InvoiceWUOM" id="InvoiceWUOM" name="InvoiceWUOM" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" type="hidden" />
+        <MSESControl Attribute="CustomsControlProcedureId" id="CCPId" name="CCPId" SourceNode="data.Declarationsrecords.Declarations" type="hidden" />
+        <MSESControl Attribute="QtyType" class="textbox" id="hdQtyType" name="hdQtyType" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" SubType="text" type="hidden" />
+        <MSESControl Attribute="PackageType" class="textbox" id="txthdPackageType" name="txthdPackageType" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" SubType="text" type="hidden" />
+        <MSESControl Attribute="HouseBillId" class="textbox" id="HouseBillId" name="HouseBillId" SourceNode="data.Declarationsrecords.Declarations" SubType="text" type="hidden" />
+        <MSESControl Attribute="CustomsBFormItemId" class="textbox" id="CustomsBFormItemId" name="CustomsBFormItemId" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" Subtype="hidden" type="hidden" />
+        <MSESControl Attribute="OGDRelRef" class="textbox" id="hdOGDRelRef" name="hdOGDRelRef" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" Subtype="text" type="hidden" />
+        <MSESControl Attribute="DecDateCreated" class="textbox" id="DeclarationVDateCheck" name="DeclarationVDateCheck" SourceNode="data.Declarationsrecords.Declarations" SubType="text" type="hidden" />
+        <MSESControl Attribute="OwnerOrgId" class="textbox" id="hdOwnerOrgId" name="OwnerOrgId" SourceNode="data.Declarationsrecords.Declarations" SubType="text" type="hidden" />
+        <MSESControl Attribute="AntiDumpingManufacturer" id="hdAntiDumpingManufacturer" name="hdAntiDumpingManufacturer" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" type="hidden" />
+      </Hiddens>
+      <ControlSet type="formheader">
+        <HorizontalArray>
+          <Cell align="" type="ncell">
+            <MSESControl CaptionId="itemdetails.invoiceitems" class="" type="label" width="20%" />
+          </Cell>
+        </HorizontalArray>
+      </ControlSet>
+      <ControlSet border="0" type="formbody">
+        <HorizontalArray height="30">
+          <Cell colspan="" id="Cell1" type="ncell">
+            <MSESControl CaptionId="main.HSCode" class="form_field_label" type="label" width="20%" />
+          </Cell>
+          <Cell id="Cell2" type="ncell">
+            <MSESControl Attribute="Code" id="hscode" InputRequiredMessage="SiteFormErrors.hscoderequired" name="hscode" NoSave="yes" OnBlur="if(this.OldValue!=this.value)onBlurHSCode(this.form);" OnFocus="this.OldValue=this.value" OnKeyDown="preventSubmitByEnter(event)" ReadOnly="no" Required="yes" size="18" SourceNode="data.CommercialInvoiceItemsrecords.HSCodeForDeclarationrecords.HSCodeForDeclaration" SubType="text" type="text" />
+            <MSESControl height="20" type="space" width="10" />
+            <MSESControl action="GetPackageType" CaptionId="" id="hscodebrowsebutton" name="hscodebrowsebutton" OnClick="LockupScreen(this.form.name,'HSCodeLookUp','NewHSCode','\''+document.itemdetails.CCPId.value+ '\''+'#'+document.itemdetails.HouseBillId.value+'#'+document.itemdetails.DeclarationId.value,800,400,true,false);" ToolTip="common.browse" type="button" class="mcBrowseButton" />
+            <MSESControl class="mcbutton" id="btnOrgCode" name="btnOrgCode" OnClick="LockupScreen('itemdetails','ViewTariffItemPopUp','ViewItem',ProfileField('TariffItems.TariffItemId')+'=\''+TariffItemId.value+'\'',700,500,true,false);" type="button" value="" />
+            <MSESControl height="20" type="space" width="10" />
+            <MSESControl action="ViewExemptionRequest" CaptionId="sad.AddItemsFromB2Form" id="AddItemFromB2Form" Linked="yes" name="AddItemFromB2Form" OnClick="setParameter('templateid',MCgetAttribute('data/Declarationsrecords/Declarations/@DeliveryOrderId',null));LockupScreen('itemdetails','ExemptionRequestsLsPg','GetApprovedB2Forms','',900,400,true,false);return false;" ToolTip="sad.AddItemsFromB2Form" type="link" />
+            <MSESControl action="ViewExemptionRequest" CaptionId="sad.UnbindB2Form" id="UnbindB2Form" name="UnbindB2Form" OnClick="UnBindB2Form();" ToolTip="sad.UnbindB2Form" type="link" />
+          </Cell>
+          <Cell colspan="" id="Cell3" type="ncell">
+            <MSESControl CaptionId="itemdetails.description" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="Cell4" type="ncell">
+            <MSESControl Attribute="Description" cols="18" id="HSCodeDescription" MaxLength="255" name="HSCodeDescription" NoSave="yes" Rows="3" SourceNode="data.CommercialInvoiceItemsrecords.HSCodeForDeclarationrecords.HSCodeForDeclaration" Style="width:220" SubType="text" type="textarea" />
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray height="35" id="">
+          <Cell colspan="" id="" type="ncell">
+            <MSESControl CaptionId="invoice.countryoforigin" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="" type="ncell">
+            <MSESControl Attribute="Name" id="country" InputRequiredMessage="SiteFormErrors.originofcountryrequired" name="country" NoSave="yes" OnBlur="if (this.OldValue!=this.value) SearchTest(this.form.name,'CountryLookUpList','ListCountryPopUp','',resetCountry,updateCountry,Array(['UNCode',this.value],['Name','']),sSearchPath + '/Countriesrecords','Countries',700,438);EnableGCCDeposit();ShowOrHideAntiDumpingFields(false);ShowOrHideAntiDumpingFields_latest(false);ShowOrHideCeramicProductManufacturers();" OnFocus="this.OldValue=this.value" OnKeyDown="preventSubmitByEnter(event)" ReadOnly="no" Required="yes" size="30" SourceNode="data.CommercialInvoiceItemsrecords.CountriesForInvoiceItemsrecords.CountriesForInvoiceItems" SubType="text" type="text" />
+            <MSESControl height="20" type="space" width="10" />
+            <MSESControl action="NewCountryPopUp" CaptionId="" id="countrybrowsebutton" name="countrybrowsebutton" OnClick="LockupScreen(this.form.name,'CountryLookUp','NewCountryPopUp','',700,385,true,false);" ToolTip="common.browse" type="button" class="mcBrowseButton" />
+          </Cell>
+          <Cell colspan="" id="cell_lblAntiDumpingManufacturers" type="ncell">
+            <MSESControl CaptionId="itemdetails.ProductManufacturers" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="cell_txtAntiDumpingManufacturers" type="ncell">
+            <MSESControl Attribute="Name" id="AntiDumpingManufacturers" name="AntiDumpingManufacturers" PrimeAttribute="TypeId" NameAttribute="Name" SourceNode="data.CommercialInvoiceItemsrecords.AntiDumpingManufacturerKoreaSouthrecords.AntiDumpingManufacturerKoreaSouth" CaptionId="" Prompt="main.SelAntiDumpingManufacturer" InputRequiredMessage="SiteFormErrors.errReqAntiDumpingManufacture" Required="yes" Style="WIDTH: 200px" SubType="ntext" type="text" />
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray id="AntiDumpingDetailsRow" height="40">
+          <Cell colspan="" id="BatterySize_lbl_Cell" type="ncell">
+            <MSESControl CaptionId="itemdetails.BatterySize" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="BatterySize_Cell" type="ncell">
+            <MSESControl Attribute="BatterySize" id="BatterySize" SelectId="BatterySize" PrimeAttribute="TypeId" NameAttribute="Name" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" name="BatterySize" CaptionId="" Prompt="main.SelBatterySize" InputRequiredMessage="SiteFormErrors.errReqBatterySize" Required="yes" Style="WIDTH: 200px" SubType="text" type="select" />
+          </Cell>
+          <Cell colspan="" id="AntiDumpingManufacturer_lbl_Cell" type="ncell">
+            <MSESControl CaptionId="itemdetails.AntiDumpingManufacturer" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="AntiDumpingManufacturer_Cell" type="ncell">
+            <MSESControl Attribute="" id="AntiDumpingManufacturer" SelectId="AntiDumpingManufacturerKoreaSouth" PrimeAttribute="TypeId" NameAttribute="Name" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" name="AntiDumpingManufacturer" OnChange="ManageManufactureFieldForAntiDumping(this);" CaptionId="" Prompt="main.SelAntiDumpingManufacturer" InputRequiredMessage="SiteFormErrors.errReqAntiDumpingManufacture" Required="yes" Style="WIDTH: 200px" SubType="text" type="select" />
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray id="AntiDumpingDetailsspainRow" height="40">
+          <Cell colspan="" id="Productspecification_lbl_Cell" type="ncell">
+            <MSESControl CaptionId="itemdetails.ProductSpecification" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="Productspecification_Cell" type="ncell">
+            <MSESControl Attribute="ProductSpecification" id="Productspecification" SelectId="SpecificationforSpainAndPoland" PrimeAttribute="TypeId" NameAttribute="Name" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" name="Productspecification" CaptionId="" Prompt="itemdetails.SelectProductSpecification" InputRequiredMessage="SiteFormErrors.errReq" Required="yes" Style="WIDTH: 200px" SubType="text" type="select" />
+          </Cell>
+          <Cell colspan="" id="AntiDumpingManufacturerSpain_lbl_Cell" type="ncell">
+            <MSESControl CaptionId="itemdetails.ProductManufacturer" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="AntiDumpingManufacturerSpain_Cell" type="ncell">
+            <MSESControl Attribute="" id="AntiDumpingManufacturerSpain" SelectId="AntiDumpingManufacturerKoreaSouth" PrimeAttribute="TypeId" NameAttribute="Name" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" name="AntiDumpingManufacturerSpain" OnChange="ManageManufactureFieldForAntiDumping(this);" CaptionId="" Prompt="main.SelAntiDumpingManufacturer" InputRequiredMessage="SiteFormErrors.errReqAntiDumpingProdManufacture" Required="yes" Style="WIDTH: 200px" SubType="text" type="select" />
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray height="30">
+          <Cell colspan="" id="FormTDEDPCABA" type="ncell" valign="top">
+            <MSESControl CaptionId="itemdetails.goodsdescription" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="FormTDECPCABA" type="ncell">
+            <MSESControl Attribute="Description" cols="18" OnDrop="return false;" OnPaste="return false;" id="description" InputRequiredMessage="SiteFormErrors.errReq" MaxLength="255" name="description" Required="yes" Rows="3" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" Style="width:220" SubType="text" type="textarea" />
+          </Cell>
+          <Cell colspan="" id="Cell3" type="ncell" valign="top">
+            <MSESControl CaptionId="itemdetails.manufacturer" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="cell_Manufacturer" type="ncell" valign="top">
+            <MSESControl Attribute="Manufacturer" id="Manufacturer" InputCorrectFormatMessage="" InputRequiredMessage="SiteFormErrors.errManufacturer" MaxLength="50" name="Manufacturer" Required="yes" size="30" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" SubType="text" type="text" />
+          </Cell>
+        </HorizontalArray>
+        <!--<HorizontalArray height="30" id="">
+      <Cell colspan="" id="" type="ncell">
+        <MSESControl CaptionId="invoice.countryoforigin" class="form_field_label" type="label" />
+      </Cell>
+      <Cell id="" type="ncell">
+        <MSESControl Attribute="Name" id="country" InputRequiredMessage="SiteFormErrors.originofcountryrequired" name="country" NoSave="yes" OnBlur="if (this.OldValue!=this.value) SearchTest(this.form.name,'CountryLookUpList','ListCountryPopUp','',resetCountry,updateCountry,Array(['UNCode',this.value],['Name','']),sSearchPath + '/Countriesrecords','Countries',700,438);EnableGCCDeposit();" OnFocus="this.OldValue=this.value" OnKeyDown="preventSubmitByEnter(event)" ReadOnly="no" Required="yes" size="30" SourceNode="data.CommercialInvoiceItemsrecords.CountriesForInvoiceItemsrecords.CountriesForInvoiceItems" SubType="text" type="text" />
+        <MSESControl height="20" type="space" width="10" />
+        <MSESControl action="NewCountryPopUp" CaptionId="" id="countrybrowsebutton" name="countrybrowsebutton" OnClick="LockupScreen(this.form.name,'CountryLookUp','NewCountryPopUp','',700,385,true,false);" ToolTip="common.browse" type="button" class="mcBrowseButton" />
+      </Cell>
+      <Cell colspan="" type="ncell">
+        <MSESControl CaptionId="itemdetails.totalitemprice" class="form_field_label" type="label" />
+      </Cell>
+      <Cell type="ncell">
+        <MSESControl Attribute="TotalPrice" id="totalprice" InputCorrectFormatMessage="SiteFormErrors.errType1" InputRequiredMessage="SiteFormErrors.errReq" MaxLength="19" name="totalprice" nPres="3" OnBlur="TotalPrice()" ReadOnly="no" Required="yes" size="20" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" SubType="+number" type="text" />
+        <MSESControl height="20" type="space" width="10" />
+        <MSESControl CaptionId="itemdetails.unitfobprice" class="form_field_label" type="label" />
+        <MSESControl Attribute="UnitPrice" id="unitprice" InputCorrectFormatMessage="SiteFormErrors.errType1" InputRequiredMessage="sad.errmsgunitprice" MaxLength="13" name="unitfobprice" nPres="3" ReadOnly="yes" Required="no" size="20" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" SubType="+number" type="text" />
+      </Cell>
+    </HorizontalArray>-->
+        <HorizontalArray height="30" id="RowMaqasa">
+          <Cell colspan="" id="Cell1" type="ncell">
+            <MSESControl CaptionId="itemdetails.oldunitprice" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="Cell2" type="ncell">
+            <MSESControl Attribute="OldUnitPrice" id="oldunitprice" InputCorrectFormatMessage="SiteFormErrors.errType1" InputRequiredMessage="sad.errmsgunitprice" MaxLength="13" name="oldunitprice" nPres="3" ReadOnly="no" Required="no" size="20" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" SubType="+number" type="text" />
+          </Cell>
+          <Cell colspan="" id="Cell3" type="ncell">
+            <MSESControl CaptionId="itemdetails.totalitemprice" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="Cell4" type="ncell">
+            <MSESControl Attribute="TotalPrice" id="totalprice" InputCorrectFormatMessage="SiteFormErrors.errType1" InputRequiredMessage="SiteFormErrors.errReq" MaxLength="19" name="totalprice" nPres="3" OnBlur="TotalPrice()" ReadOnly="no" Required="yes" size="20" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" SubType="+number" type="text" />
+            <MSESControl height="20" type="space" width="10" />
+            <MSESControl CaptionId="itemdetails.unitfobprice" class="form_field_label" type="label" />
+            <MSESControl Attribute="UnitPrice" id="unitprice" InputCorrectFormatMessage="SiteFormErrors.errType1" InputRequiredMessage="sad.errmsgunitprice" MaxLength="13" name="unitfobprice" nPres="3" ReadOnly="yes" Required="no" size="20" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" SubType="+number" type="text" />
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray height="30" id="">
+          <Cell colspan="" id="Cell1" type="ncell">
+            <MSESControl CaptionId="bill.noofpackages" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="Cell2" type="ncell">
+            <MSESControl Attribute="NoOfPackages" id="noofpackages" InputCorrectFormatMessage="SiteFormErrors.errType1" InputRequiredMessage="SiteFormErrors.errReq" MaxLength="6" name="noofpackages" Required="yes" size="25" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" SubType="+integer" type="text" />
+          </Cell>
+          <Cell colspan="" id="Cell5">
+            <MSESControl CaptionId="bill.packagetype" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="Cell6">
+            <MSESControl Attribute="Description" id="txtpackagetype" InputRequiredMessage="SiteFormErrors.PackTypeReq" name="txtpackagetype" NoSave="yes" OnBlur="if (this.OldValue!=this.value) SearchTest(this.form.name,'PackageTypePg','GetPackageType',ProfileField('PackageForItems.Name')+' LIKE N\'' + this.value +'%\'',resetPackType, updatePackType, null,rootNodeName+'/'+dataNodeName+'/PackageForItemsrecords','PackageForItems',550,475)" OnFocus="this.OldValue=this.value" OnKeyDown="preventSubmitByEnter(event)" ReadOnly="no" Required="yes" size="30" SourceNode="data.CommercialInvoiceItemsrecords.PackageForItemsrecords.PackageForItems" SubType="text" type="text" />
+            <MSESControl height="20" type="space" width="10" />
+            <MSESControl action="GetPackageType" CaptionId="" id="btnPackageType" name="btnPackageType" OnClick="LockupScreen(this.form.name,'PackageTypePg','GetPackageType','',600,400,true,false);" ToolTip="common.browse" type="button" class="mcBrowseButton" />
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray height="30" id="Row2">
+          <Cell colspan="" id="Cell7" type="ncell">
+            <MSESControl CaptionId="bill.quantity" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="Cell8" type="ncell">
+            <MSESControl Attribute="Quantity" id="quantity" InputCorrectFormatMessage="SiteFormErrors.errType1" InputRequiredMessage="sad.errmsgqty" MaxLength="13" name="quantity" nPres="3" OnBlur="TotalPrice()" Required="yes" size="25" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" SubType="+number" type="text" />
+          </Cell>
+          <Cell colspan="" id="Cell9">
+            <MSESControl CaptionId="bill.QtyType" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="Cell10" type="ncell">
+            <MSESControl Attribute="UnitName" id="txtqtytype" InputRequiredMessage="SiteFormErrors.QtyTypeReq" name="txtqtytype" NoSave="yes" OnBlur="if (this.OldValue!=this.value) SearchTest(this.form.name,'PackageQtyTypePg','GetPackageQtyType',ProfileField('PackageForQty.Name')+' LIKE N\'' + this.value +'%\'',resetQtyType, updateQtyType, null,rootNodeName+'/'+dataNodeName+'/PackageForQtyrecords','PackageForQty',550,475)" OnFocus="this.OldValue=this.value" OnKeyDown="preventSubmitByEnter(event)" ReadOnly="yes" Required="yes" size="30" SourceNode="data.CommercialInvoiceItemsrecords.HSCodeForDeclarationrecords.MeasurementUnitsrecords.MeasurementUnits" SubType="text" type="text" />
+            <MSESControl border="1" height="10" ImageDir="normal" ImageUrl="Client/Themes/Blue/Images/spacer.gif" src="http://localhost/MicroClearKuwait/Client/Themes/Blue/Images/Client/Themes/Blue/Images/spacer.gif" type="space" width="10" />
+            <MSESControl action="ConvertUnits" CaptionId="sad.Convert" class="mcbutton" id="cmdConvert" name="cmdConvert" OnClick="LockupScreen(this.form.name,'ConverterFrPg','ConvertUnits',this.form.hdQtyType.value,700,400,true,false);&#xA;&#xA;&#xA;" type="button" value="cmdConvert" />
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray height="30" id="Row5">
+          <Cell colspan="" id="Cell9" type="ncell">
+            <MSESControl CaptionId="bill.NetWeight" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="Cell10" type="ncell">
+            <MSESControl Attribute="Weight" id="weight" InputCorrectFormatMessage="SiteFormErrors.errType1" InputRequiredMessage="bill.weightRequired" MaxLength="16" name="weight" nPres="6" Required="yes" size="25" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" SubType="+number" type="text" />
+          </Cell>
+          <Cell colspan="" id="Cell11">
+            <MSESControl CaptionId="bill.GrossWeight" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="Cell12" type="ncell">
+            <MSESControl Attribute="Gross" id="Gross1" InputCorrectFormatMessage="SiteFormErrors.errType1" InputRequiredMessage="SiteFormErrors.errReq" MaxLength="16" name="Gross1" nPres="6" Required="yes" size="25" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" SubType="+number" type="text" />
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray height="30" id="Row3">
+          <Cell colspan="" id="Cell1" type="ncell">
+            <MSESControl CaptionId="bill.isrestctd" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="Cell2" type="ncell">
+            <MSESControl action="IsExempted" Attribute="IsRestricted" class="form_field_label" id="IsRestricted" name="IsRestricted" OnClick="EnableDiableCustomRestriction('itemdetails');" ReadOnly="no" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" type="checkbox" value="1" />
+          </Cell>
+          <Cell colspan="" id="Cell3" type="ncell">
+            <MSESControl CaptionId="bill.cstmRstxn" class="form_field_label" id="fieldlabel1" type="label" />
+          </Cell>
+          <Cell id="cellRestrictionType" type="ncell">
+            <MSESControl Attribute="" id="txtRestrictionName" InputRequiredMessage="bill.selectCstmRstxn" name="txtRestrictionName" NoSave="" OnBlur="if (this.OldValue!=this.value) (this.form.name,'CustomsRestrictionTypePLsPg','ListCustomsRestrictionType',ProfileField('CustomsRestrictionType.TypeId')+'=\'' + this.value +'\'',resetCustomsRestrictionType, updateCustomsRestrictionType, null,rootNodeName+'/'+dataNodeName+'/CustomsRestrictionTypesrecords','CustomsRestrictionTypes',550,475)" OnFocus="this.OldValue=this.value" OnKeyDown="preventSubmitByEnter(event)" ReadOnly="no" Required="no" size="30" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" SubType="text" type="text" />
+            <MSESControl border="1" height="10" id="spcRestriction" ImageDir="normal" ImageUrl="Client/Themes/Blue/Images/spacer.gif" name="spcRestriction" src="http://localhost/MicroClearKuwait/Client/Themes/Blue/Images/Client/Themes/Blue/Images/spacer.gif" type="space" width="10" />
+            <MSESControl action="ListCustomsRestrictionsType" CaptionId="" id="btnRestrictionType" name="btnRestrictionType" OnClick="LockupScreen(this.form.name,'CustomsRestrictionTypePLsPg','ListCustomsRestrictionsType','',600,400,true,false);" ToolTip="common.browse" type="button" class="mcBrowseButton" />
+            <MSESControl Attribute="RestrictionType" id="txtRestrictionId" name="txtRestrictionId" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" type="hidden" />
+            <MSESControl border="1" height="10" ImageDir="normal" ImageUrl="Client/Themes/Blue/Images/spacer.gif" src="http://localhost/microclearkuwait/Client/Themes/Blue/Images/Client/Themes/Blue/Images/spacer.gif" type="space" width="10" />
+            <MSESControl action="EditReleaseReference" CaptionId="bill.ReleaseRef" class="mcbutton" id="cmdRelRef" name="cmdRelRef" OnClick="var resName = this.form.txtRestrictionName.value;&#xA;LockupScreen(this.form.name,'RelRefFrPg','EditReleaseReference',resName,700,250,true,false);" type="button" value="cmdConvert" />
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray height="30" id="Row3">
+          <Cell colspan="" id="Cell4" type="ncell">
+            <MSESControl CaptionId="bill.ReleaseRef" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="cellRestrictionRelRef" type="ncell">
+            <MSESControl Attribute="RestrictionRelRef" cols="18" id="RestrictionRelRef" InputRequiredMessage="SiteFormErrors.errRelRefReq" MaxLength="30" name="RestrictionRelRef" Required="no" Rows="3" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" Style="width:220" SubType="text" type="textarea" />
+            <MSESControl CaptionId="bill.ReleaseRef" class="mcbutton" id="RelRef" name="RelRef" OnClick=" var sCri=HtmlElementById('TariffItemId').value;var sBillType  =  MCgetAttribute('data/Declarationsrecords/Declarations/@BillType','');if(sCri!=null &amp;&amp; sCri!=''){LockupScreen('itemdetails','OGDOrganizationsPopUpPg','GetOGDOrganizations',sCri + '~' + sBillType,900,400,true,false);}return false;" type="button" value="" />
+          </Cell>
+          <Cell colspan="" id="Cell6" type="ncell">
+            <MSESControl CaptionId="sad.exemptiondetails" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="Cell7" type="ncell">
+            <MSESControl Attribute="ExemptionDetails" cols="18" id="ExemptionDetails" MaxLength="255" name="ExemptionDetails" Rows="3" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" Style="width:220" SubType="text" type="textarea" />
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray height="30" id="Row3">
+          <Cell colspan="" id="Cell5" type="ncell">
+            <MSESControl CaptionId="bill.isexempted" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="Cell8" type="ncell">
+            <MSESControl action="IsExempted" Attribute="IsExempted" class="form_field_label" id="IsExempted" name="IsExempted" OnClick="EnableDiableExcemptionFor('itemdetails');EnableGCCDeposit();" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" type="checkbox" value="1" />
+          </Cell>
+          <Cell colspan="" id="Cell9" type="ncell">
+            <MSESControl CaptionId="bill.ExemptionFor" class="form_field_label" id="fieldlabel1" type="label" />
+          </Cell>
+          <Cell id="CelllselExcemptionFor" type="ncell">
+            <MSESControl Attribute="Name" id="txtExemptionName" InputRequiredMessage="SiteFormErrors.errExcemptionFor" name="txtExemptionName" NoSave="yes" OnBlur="if (this.OldValue!=this.value) (this.form.name,'ExemptionTypePLsPg','ListExemptionType',ProfileField('ExemptionType.TypeId')+'=\'' + this.value +'\'',resetExemptionType, updateExemptionType, null,rootNodeName+'/'+dataNodeName+'/ExemptionTypesrecords','ExemptionTypes',550,475)" OnFocus="this.OldValue=this.value" OnKeyDown="preventSubmitByEnter(event)" ReadOnly="yes" Required="yes" size="30" SourceNode="data.CommercialInvoiceItemsrecords.ExemptionTyperecords.ExemptionType" SubType="text" type="text" />
+            <MSESControl border="1" height="10" id="spcExemption" ImageDir="normal" ImageUrl="Client/Themes/Blue/Images/spacer.gif" name="spcExemption" src="http://localhost/MicroClearKuwait/Client/Themes/Blue/Images/Client/Themes/Blue/Images/spacer.gif" type="space" width="10" />
+            <MSESControl action="ListExemptionType" CaptionId="" id="btnExemptionType" name="btnExemptionType" OnClick="var sCCPId = MCgetAttribute('data/Declarationsrecords/Declarations/@CustomsControlProcedureId',''); MCsetAttribute('actionservice/actioncontrol/@templateid',sCCPId); LockupScreen(this.form.name,'ExemptionTypePLsPg','ListExemptionType','',700,400,true,false);" ToolTip="common.browse" type="button" class="mcBrowseButton" />
+            <MSESControl Attribute="ExemptionFor" id="txtExemptionId" name="txtExemptionId" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" type="hidden" />
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray height="30" id="Row3">
+          <Cell colspan="" id="Cell10" type="ncell">
+            <MSESControl CaptionId="sad.exemptionbnf" class="form_field_label" id="fieldlabel1" type="label" />
+          </Cell>
+          <Cell id="CelllselExcemptionBnf" type="ncell">
+            <MSESControl Attribute="Name" id="txtExemptionBnf" InputRequiredMessage="SiteFormErrors.errExcemptionBnf" name="txtExemptionBnf" NoSave="yes" OnBlur="if (this.OldValue!=this.value) (this.form.name,'ExemptionBnfTypePLsPg','ListExemptionBnfType',ProfileField('ExemptionBnfType.TypeId')+'=\'' + this.value +'\'',resetExemptionBnfType, updateExemptionBnfType, null,rootNodeName+'/'+dataNodeName+'/ExemptionBnfTyperecords','ExemptionBnfType',550,475)" OnFocus="this.OldValue=this.value" OnKeyDown="preventSubmitByEnter(event)" ReadOnly="yes" Required="yes" size="30" SourceNode="data.CommercialInvoiceItemsrecords.Organizationsrecords.Organizations" SubType="text" type="text" />
+            <MSESControl border="1" height="10" id="spcExemption" ImageDir="normal" ImageUrl="Client/Themes/Blue/Images/spacer.gif" name="spcExemption" src="http://localhost/MicroClearKuwait/Client/Themes/Blue/Images/Client/Themes/Blue/Images/spacer.gif" type="space" width="10" />
+            <MSESControl action="ListExemptionBnfType" CaptionId="" id="btnExemptionBnf" name="btnExemptionBnf" OnClick="//LockupScreen(this.form.name,'ExemptionBnfTypePLsPg','ListExemptionBnfType','',600,400,true,false);&#xA;LockupScreen(this.form.OrganizationId,'OrganizationPopupLsPg','ListExemptionBnfType','',800,500,true,false);&#xA;" ToolTip="common.browse" type="button" class="mcBrowseButton" />
+            <MSESControl Attribute="ExemptionBnf" id="txtExemptionBnfId" name="txtExemptionBnfId" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" type="hidden" />
+          </Cell>
+          <Cell colspan="" id="Cell12" type="ncell">
+            <MSESControl CaptionId="bill.ExemptionRef" class="form_field_label" id="fieldlabel1" type="label" />
+          </Cell>
+          <Cell id="CellExemptionRef" type="ncell">
+            <MSESControl Attribute="ExemptionRef" id="ExemptionRef" InputCorrectFormatMessage="" InputRequiredMessage="SiteFormErrors.errExemptionRefReq" MaxLength="15" name="ExemptionRef" Required="no" size="30" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" SubType="text" type="text" />
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray height="30" id="Row4">
+          <Cell colspan="" id="Cell5" type="ncell">
+            <MSESControl CaptionId="bill.IncludeItemGCCDeposit" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="Cell8" type="ncell">
+            <MSESControl action="" Attribute="IncludeGCCDeposit" class="form_field_label" id="IncludeGCCDeposit" name="IncludeGCCDeposit" OnClick="SetValueIncludeGCCDeposit();" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" type="checkbox" value="1" />
+          </Cell>
+          <Cell />
+          <Cell />
+        </HorizontalArray>
+        <HorizontalArray id="TarrifRow1">
+          <Cell type="ncell">
+            <MSESControl CaptionId="bill.volume" class="form_field_label" type="label" />
+          </Cell>
+          <Cell type="ncell">
+            <MSESControl Attribute="Volume" id="volume" InputCorrectFormatMessage="SiteFormErrors.errType1" InputRequiredMessage="SiteFormErrors.errReq" MaxLength="13" name="volume" nPres="3" Required="no" size="25" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" SubType="+number" type="text" />
+          </Cell>
+          <Cell id="Cell27" type="ncell">
+            <MSESControl CaptionId="invoice.OtherReleases" class="form_field_label" type="label" />
+          </Cell>
+          <Cell id="Cell36" type="ncell">
+            <MSESControl Attribute="HSCodeDescription" cols="18" id="OtherReleases" InputRequiredMessage="" MaxLength="100" name="OtherReleases" Required="no" Rows="3" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" Style="width:220" SubType="text" type="textarea" />
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray height="30" id="TaricRow1">
+          <Cell type="ncell">
+            <MSESControl CaptionId="bill.volume" class="form_field_label" type="label" />
+          </Cell>
+          <Cell type="ncell" />
+          <Cell>
+            <MSESControl CaptionId="Taric.taricode" class="form_field_label" type="label" width="20%" />
+          </Cell>
+          <Cell type="ncell">
+            <MSESControl Attribute="Code" id="tariccode" InputRequiredMessage="SiteFormErrors.hscoderequired" name="tariccode" NoSave="yes" OnBlur="if (this.OldValue!=this.value) SearchTest(this.form.name,'TaricSubheadingsPopUp','ListTaricSubheadings',ProfileField('TaricSubheadings.Code')+' Like N\''+EncodeCriteriaFieldValue(this.value)+'%\'',resetTaricCode,updateTaricCode,null,rootNodeName+'/'+dataNodeName+'/'+'TaricSubheadingsrecords','TaricSubheadings',750,475)" OnFocus="this.OldValue=this.value" OnKeyDown="preventSubmitByEnter(event)" ReadOnly="no" Required="no" size="30" SourceNode="data.CommercialInvoiceItemsrecords.TaricSubheadingsrecords.TaricSubheadings" SubType="text" type="text" />
+            <MSESControl height="20" type="space" width="10" />
+            <MSESControl action="ListTaricSubheadings" CaptionId="" id="hscodebrowsebutton" name="hscodebrowsebutton" OnClick="LockupScreen(this.form.name,'TaricSubheadingsPopUp','ListTaricSubheadings','',600,400,true,false);" ToolTip="common.browse" type="button" class="mcBrowseButton" />
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray height="50" id="TaricRow2">
+          <Cell colspan="" type="ncell">
+            <MSESControl CaptionId="bill.quantity" class="form_field_label" type="label" />
+          </Cell>
+          <Cell type="ncell">
+            <MSESControl Attribute="Quantity" id="quantity1" InputCorrectFormatMessage="SiteFormErrors.errType1" InputRequiredMessage="sad.errmsgqty" MaxLength="13" name="quantity1" nPres="3" OnBlur="TotalPrice()" Required="no" size="25" SourceNode="data.CommercialInvoiceItemsrecords.CommercialInvoiceItems" SubType="+number" type="text" />
+          </Cell>
+          <Cell colspan="" valign="top">
+            <MSESControl CaptionId="Taric.taricItemDescription" class="form_field_label" type="label" />
+          </Cell>
+          <Cell type="ncell" width="">
+            <MSESControl Attribute="Description" cols="18" id="TaricDescription" MaxLength="255" name="TaricDescription" NoSave="yes" Rows="3" SourceNode="data.CommercialInvoiceItemsrecords.TaricSubheadingsrecords.TaricSubheadings" Style="width:220" SubType="text" type="textarea" />
+          </Cell>
+        </HorizontalArray>
+        <HorizontalArray height="30" id="TarrifRow2">
+          <Cell colspan="1" id="Cell5" type="ncell">
+            <MSESControl action="ListHSCodeTree" CaptionId="main.HSCodeTreeView" id="lnkTreeView" Linked="yes" name="lnkTreeView" OnClick="LockupScreen('','HSCodeTreeViewLsPg','ListHSCodeTree',MCgetAttribute('data/CommercialInvoiceItemsrecords/CommercialInvoiceItems/@TariffItemId',''),800,300,true,false);return false;" ToolTip="main.HSCodeTreeView" type="link" />
+          </Cell>
+          <Cell colspan="1" id="Cell6" type="ncell" />
+          <Cell id="Cell7" type="ncell" valign="top" />
+          <Cell type="ncell" width="" />
+        </HorizontalArray>
+        <HorizontalArray height="30" id="">
+          <Cell colspan="1" id="Cell15" type="ncell">
+            <MSESControl action="ListAssociatedDeclHBItems" CaptionId="MechCertificate.AssocHBItems" id="AssocHBItems" Linked="yes" name="AssocHBItems" OnClick="AssociateHBItems(this.form);" ToolTip="MechCertificate.AssocHBItems" type="link" />
+          </Cell>
+          <Cell colspan="1" id="Cell6" type="ncell" />
+          <Cell id="Cell7" type="ncell" valign="top" />
+          <Cell type="ncell" width="" />
+        </HorizontalArray>
+        <HorizontalArray height="10" id="InfoIsCrctRow">
+          <Cell colspan="4">
+            <MSESControl Checked="no" id="chkInfoIsCrct" name="chkInfoIsCrct" OnClick="" ReadOnly="no" type="checkbox" value="1" />
+            <MSESControl height="20" type="space" width="15" />
+            <MSESControl CaptionId="SiteFormErrors.errinfoIsCrct" class="view-text-redbold" type="label" id="lblInfoIsCrct" />
+          </Cell>
+        </HorizontalArray>
+      </ControlSet>
+      <ControlSet type="formfooter">
+        <HorizontalArray>
+          <Cell align="center" type="ncell">
+            <!--  <MSESControl action="SaveNewCommercialInvoiceItemOne" CaptionId="common.createnew" id="savebttn" name="savebttn" OnClick="checkDiscountValue(this.form,'SaveNewCommercialInvoiceItemOne','OpenDec_u97 ?ration',ProfileField('Declarations.DeclarationId','text') + '=\''+document.itemdetails.DeclarationId.value+ '\'','SAD','0');" ToolTip="common.save" type="button" />
+        <MSESControl action="SaveNewCommercialInvoiceItemOne" CaptionId="common.saveandadd" id="createbttn1" name="createbttn1" OnClick="checkDiscountValue(this.form,'SaveNewCommercialInvoiceItemOne','NewCommercialInvoiceItemOneForSaveAndAdd',ProfileField('CommercialInvoices.CommercialInvoiceId','t_u120 ?t') + '=\''+this.form.CommercialInvoiceId.value+ '\'','CommercialInvoiceItem','1');" ToolTip="common.save" type="button" />
+       -->
+            <MSESControl action="SaveCommercialInvoiceItemOne" CaptionId="common.save" id="savebttn" name="savebttn" OnClick="setParameter('templateid','save');if (ValidateNetAndGrossWeight(this.form)){SilentCallCheckPriceVariation(this.form);}&#xA;//checkDiscountValue(this.form,'SaveCommercialInvoiceItemOne','OpenDeclaration',ProfileField('Declarations.DeclarationId','text') + '=\''+document.itemdetails.DeclarationId.value+ '\'','SAD','0');" ToolTip="common.save" type="button" />
+            <MSESControl action="SaveNewCommercialInvoiceItemOne" CaptionId="common.createnew" id="createnew" name="createnew" OnClick="setParameter('templateid','new');if (ValidateNetAndGrossWeight(this.form)){SilentCallCheckPriceVariation(this.form);}" ToolTip="common.save" type="button" />
+            <MSESControl action="SaveNewCommercialInvoiceItemOne" CaptionId="common.saveandadd" id="createbttn1" name="createbttn1" OnClick="setParameter('templateid','saveandnew');if (ValidateNetAndGrossWeight(this.form)){SilentCallCheckPriceVariation(this.form);}" ToolTip="common.save" type="button" />
+            <!--
+        <MSESControl action="SaveCommercialInvoiceItemOne" CaptionId="common.save" id="savebttn" name="savebttn" OnClick="SilentCallCheckPriceVariation();&#xA;//checkDiscountValue(this.form,'SaveComm_u114 ?cialInvoiceItemOne','OpenDeclaration',ProfileField('Declarations.DeclarationId','text') + '=\''+document.itemdetails.DeclarationId.value+ '\'','SAD','0');" ToolTip="common.save" type="button" />
+         -->
+            <MSESControl action="" CaptionId="common.cancel" id="cancel" name="cancel" OnClick="Cancel();" ToolTip="common.cancel" type="button" />
+          </Cell>
+        </HorizontalArray>
+      </ControlSet>
+    </Form>
+  </PageletClasses>
+  <Scripts>
+    <Script src="Client/Browsers/IE60/PrintingHelper.js">
+    </Script>
+  </Scripts>
+</Page>

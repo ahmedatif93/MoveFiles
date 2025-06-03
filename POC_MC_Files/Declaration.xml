@@ -1,0 +1,3974 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScriptModule id="Declaration">
+  <Script>
+    var _alertMsgBlinkId=null;
+    var _conBlinkId=null;
+    var _priceAlertMsgBlinkid=null;
+    var TokenID = 0;
+
+
+    function CallImporterLicensePopup(mode)
+    {
+    var ConsigneeType='';
+    var sBaseForm=''
+    if(mode=='View')
+    {
+    ConsigneeType=MCgetAttribute('data/Declarationsrecords/Declarations/@ConsigneeType');
+    sBaseForm='ImporterLicenseView';
+    }
+    else
+    {
+    ConsigneeType=HtmlElementById("ConsigneeType").value;
+    sBaseForm='ImporterLicenseForm';
+    }
+
+    if(ConsigneeType==''){
+    ShowFormException(frm.formexception.value,msgDictionary('consigneerequired'),'DateLastSet');
+    }else if(ConsigneeType=='o'){
+
+    var StateId='OrgImporterLicenseActivatedState';
+    var sORgId=HtmlElementById("ConsigneeId").value;
+    //frm.ConsigneeId.value
+    var sCriteria=sORgId;<!--ProfileField('OrgImporterLicense.OrganizationId','text') + '=\''+sORgId+'\''+' and '+ProfileField('OrgImporterLicense.StateId','text') + '=\''+StateId+'\'';-->
+    LockupScreen(sBaseForm,'DeclOrgImporterLicenseLsPg','ListOrgImporterLicense',sCriteria,700,400,false,false);
+    return false;
+    }
+    }
+    function HideImporterLicenseDetails()
+    {
+    var pageid = getParameter('pageid','');
+    var sStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId');
+    var sOrganizationType=MCgetAttribute('data/Declarationsrecords/OrganizationsForDeclarationrecords/OrganizationsForDeclaration/@OrganizationTypeId');
+    var sBillType = MCgetAttribute('data/Declarationsrecords/Declarations/@BillType','');
+    var sDeclNumber=MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationNumber','');
+    if(sBillType == global_BillType.Import)
+    {
+
+    if(sOrganizationType!=GBL_Types.ORGANIZATIONS.IMPORTER)
+    {
+    if(HtmlElementById("Row_ImpLicNumber")!=null)
+    HtmlElementById("Row_ImpLicNumber").style.display = "none";
+    }
+    else
+    {
+    if((sStateId !='DeclarationCreatedState' &amp;&amp; sStateId!='DutyCalculatedState'  &amp;&amp; sStateId!='DeclarationRejected'  &amp;&amp; sStateId!='DeclarationModifiedState'))
+    {
+    if(HtmlElementById("Cell_OrgImpLicensebrowsebutton")!=null)
+    HtmlElementById("Cell_OrgImpLicensebrowsebutton").style.display = "none";
+    if(HtmlElementById("OrgImpLicensebrowsebutton")!=null)
+    HtmlElementById("OrgImpLicensebrowsebutton").style.display = "none";
+    }
+    }
+    }
+    else
+    {
+    if(HtmlElementById("Row_ImpLicNumber")!=null)
+    HtmlElementById("Row_ImpLicNumber").style.display = "none";
+    }
+
+    var sCCPId = MCgetAttribute('data/Declarationsrecords/Declarations/@CustomsControlProcedureId','');
+    if(sCCPId==GBL_CustomsControlProcedures.AIRPORT.IMPORT_BILL.AIR_BWHInbound ||sCCPId==GBL_CustomsControlProcedures.SEAPORT.IMPORT_BILL.SEA_BWHInbound )
+    {
+    if(HtmlElementById("consigneebrowsebutton")!=null)
+    HtmlElementById("consigneebrowsebutton").disabled = true;
+    }
+    else
+    {
+    if(HtmlElementById("consigneebrowsebutton")!=null)
+    HtmlElementById("consigneebrowsebutton").disabled = false;
+    }
+
+    }
+
+
+    function GetImportLicenseDetails()
+    {
+    var sORgId= MCgetAttribute('data/Declarationsrecords/Declarations/@ConsigneeId','');
+    var pageid = getParameter('pageid','');
+    var sConsigneeType= (pageid!='ViewSAD' &amp;&amp; pageid!='ViewDeclarationExportBill' &amp;&amp; pageid!='ViewTransitBillSAD')?HtmlElementById("ConsigneeType").value:MCgetAttribute('data/Declarationsrecords/Declarations/@ConsigneeType','');
+   var sConsigneeId= HtmlElementById("ConsigneeId").value;
+   var sFlag=true;
+   <!--if(sConsigneeType=='o' &amp;&amp; HtmlElementById("hdImporterLiceinceId").value=='' &amp;&amp; HtmlElementById("hidOrgType").value==GBL_Types.ORGANIZATIONS.IMPORTER )
+    { 
+      alert(msgDictionary('errSelectValidLicNumber'));
+      sFlag=false;
+    }-->
+   MCsetAttribute("data/Declarationsrecords/Declarations/@ImporterLiceinceId",HtmlElementById("hdImporterLiceinceId").value);
+   return sFlag;
+ }
+
+
+    function GetImportLicenseDetailsOld()
+    {
+    var sImportLicenseId = MCgetAttribute('data/Declarationsrecords/Declarations/@ImporterLicenseId','');
+    var pageid = getParameter('pageid','');
+    var sConsigneeType= (pageid!='ViewSAD' &amp;&amp; pageid!='ViewDeclarationExportBill' &amp;&amp; pageid!='ViewTransitBillSAD')?HtmlElementById("ConsigneeType").value:MCgetAttribute('data/Declarationsrecords/Declarations/@ConsigneeType','');
+    var sConsigneeId= HtmlElementById("ConsigneeId").value;
+    var sFlag=true;
+    if(sConsigneeType=='o' &amp;&amp;HtmlElementById("hdImporterLiceinceId").value=='')
+    {
+    sCriteria=sConsigneeId;
+    var sInXml = '&lt;OrgImporterLicenserecords /&gt;';
+    var myReq = new SilentActionCall('ListOrgImporterLicense',sCriteria,CallBackGetImporterLiceinceDetails,sInXml,'servicedocument','actionservice/actioncontrol');
+    myReq.StartRequest();
+    myReq = null;
+    }
+    else if(HtmlElementById("hdImporterLiceinceId").value!='')
+    {
+    MCsetAttribute("data/Declarationsrecords/Declarations/@ImporterLicenseId",HtmlElementById("hdImporterLiceinceId").value);
+    }
+    function CallBackGetImporterLiceinceDetails(xmlRes)
+    {
+    var sItemcount='';
+    var OrgImporterCount='';
+    var IsImporter='N';
+    var sExistingImporterLicId ='';
+    if(xmlRes[0].parentNode.selectSingleNode("//actionservice/actioncontrol/@IsImporter")!=null)
+    IsImporter=xmlRes[0].parentNode.selectSingleNode("//actionservice/actioncontrol/@IsImporter").value;
+    if(IsImporter=='N')
+    sFlag=true;
+    else
+    {
+    HtmlElementById("Row_ImpLicNumber").style.display = "";
+    if(xmlRes[0].parentNode.selectSingleNode("//actionservice/actioncontrol/@OrgImporterLicenseId")!=null)
+    HtmlElementById("hdImporterLiceinceId").value=xmlRes[0].parentNode.selectSingleNode("//actionservice/actioncontrol/@OrgImporterLicenseId").value;
+    if(xmlRes[0].parentNode.selectSingleNode("//actionservice/actioncontrol/@OrgImporterLicenseNumber")!=null)
+    HtmlElementById("lblImpLicNumber").innerText=xmlRes[0].parentNode.selectSingleNode("//actionservice/actioncontrol/@OrgImporterLicenseNumber").value;
+    if( HtmlElementById("hdImporterLiceinceId").value=='' )
+    {
+    alert(msgDictionary('errSelectValidLicNumber'));
+    sFlag=false;
+    }
+    }
+    MCsetAttribute("data/Declarationsrecords/Declarations/@ImporterLicenseId",HtmlElementById("hdImporterLiceinceId").value);
+    }
+    return sFlag;
+    }
+
+
+
+    function HideAndShowUploadLinks()
+    {
+    var sCCRId = MCgetAttribute('data/Declarationsrecords/DeliveryOrdersrecords/DeliveryOrders/@CCRequestId','');
+    var sStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId','');
+
+    var sDeclOwnerOrgId = MCgetAttribute('data/Declarationsrecords/Declarations/@OwnerOrgId','');
+    var sCCPId = MCgetAttribute('data/Declarationsrecords/Declarations/@CustomsControlProcedureId','');
+    var IsAirDRBayan=false;
+
+    if(sCCPId ==  global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_AIRPORT)
+    IsAirDRBayan=true;
+
+    <!--if(sCCRId !="")-->
+    if(IsAirDRBayan &amp;&amp; sDeclOwnerOrgId != GBL_Organizations.CUSTOMS.KUWAIT_CUSTOMS)
+    {
+    <!--if((IsRoleExist("DR Broker")||IsRoleExist("DirectReleaseAuditor")) &amp;&amp; (sStateId=='DeclarationCreatedState'|| sStateId=='DeclarationModifiedState'||sStateId=='DutyCalculatedState'||sStateId=='DeclarationRejected' || sStateId=='DeclarationStartState'))
+    {
+    if(HtmlElementById('lnkCCRUploadDoc') != null)
+    HtmlElementById('lnkCCRUploadDoc').style.display = '';
+    if(HtmlElementById('lnkCCRvwuploadDoc') != null)
+    HtmlElementById('lnkCCRvwuploadDoc').style.display = 'none';
+    }
+    else
+    {-->
+    if(IsRoleExist("DR Broker"))
+    {
+    if(HtmlElementById('lnkCCRUploadDoc') != null)
+    HtmlElementById('lnkCCRUploadDoc').style.display = '';
+    if(HtmlElementById('lnkCCRvwuploadDoc') != null)
+    HtmlElementById('lnkCCRvwuploadDoc').style.display = 'none';
+    }
+    else
+    {
+    if(HtmlElementById('lnkCCRUploadDoc') != null)
+    HtmlElementById('lnkCCRUploadDoc').style.display = 'none';
+    if(HtmlElementById('lnkCCRvwuploadDoc') != null)
+    HtmlElementById('lnkCCRvwuploadDoc').style.display = '';
+    }
+    }
+    <!--}-->
+    else
+    {
+    if(HtmlElementById('lnkCCRUploadDoc') != null)
+    HtmlElementById('lnkCCRUploadDoc').style.display = 'none';
+    if(HtmlElementById('lnkCCRvwuploadDoc') != null)
+    HtmlElementById('lnkCCRvwuploadDoc').style.display = 'none';
+    if(HtmlElementById('linksCCRrow') != null)
+    HtmlElementById('linksCCRrow').style.display = 'none';
+
+    }
+    }
+
+    function openCCRUploadDocument()
+    {
+    var sDeclId = MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null);
+    var sStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId','');
+
+    if((IsRoleExist("DR Broker")||IsRoleExist("DirectReleaseAuditor")) &amp;&amp; (sStateId=='DeclarationCreatedState'|| sStateId=='DeclarationModifiedState'||sStateId=='DutyCalculatedState'||sStateId=='DeclarationRejected' || sStateId=='DeclarationStartState'))
+    {
+    _GetDMSFromMVC('Form','CourierDocuments');
+    }
+    else
+    {
+    _GetDMSFromMVC('View','CourierDocuments');
+    }
+    }
+
+
+
+    //Call the OGD Response Dashboard Report
+    //added by sathya for checking  DDt Duty amount 23/5/2018 start
+    function CHKPrintValidation()
+    {
+    var sDutyAmount='';
+    var sInXml = xmlServiceDocument.selectSingleNode(rootNodeName + "/" + dataNodeName + "/Declarationsrecords");
+    sInXml = OuterXML(sInXml);
+    var myReq = new SilentActionCall('CheckMaqasaDuty','', CallingCHKPrintValidation, sInXml, rootNodeName + '/' + dataNodeName , 'Declarationsrecords');
+
+    myReq.StartRequest();
+    myReq = null;
+    function CallingCHKPrintValidation(rtnRows)
+    {
+    if (rtnRows.length > 0)
+    {
+    var xmlObjTemp=rtnRows[0];
+    if (xmlObjTemp.getAttributeNode("MaqasaDutyValue") != null &amp;&amp; xmlObjTemp.getAttributeNode("MaqasaDutyValue").nodeValue!='')
+    //   if (xmlTemp.selectSingleNode(rootNodeName + "/data/Declarationrecords").getAttribute('MaqasaDutyValue') != null)
+    sDutyAmount = xmlObjTemp.getAttributeNode("MaqasaDutyValue").nodeValue;//xmlTemp.selectSingleNode(rootNodeName + "/data/Declarationrecords").getAttribute('MaqasaDutyValue');
+    if(sDutyAmount==0)
+    {
+    alert(msgDictionary('errDDTDutyZero'));
+    return false ;
+    }
+    else
+    {
+    printHiddenView('MaqasaClaimsReport',ProfileField('Declarations.DeclarationId','text') + '=\''+MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId','')+'\' AND  [Dues].[DueNo] =\''+MCgetAttribute('data/Declarationsrecords/Declarations/@DueNo','')+'\'','','','','','','A4','2');
+    }
+    }
+    }
+    }
+    //added by sathya for checking  DDt Duty amount 23/5/2018 end
+
+    function OpenAssessmentReports()
+    {
+        if(HtmlElementById('DeclarationId') != null)
+        {
+        var sDeclId= HtmlElementById('DeclarationId').value;
+        MCsetAttribute('actionservice /actioncontrol/@templateid',sDeclId);    
+        LockupScreen('ViewSAD','AssessmentDeatilsLsPg','ListAssessmentDetails',ProfileField('Assessmentdetails.ReferenceId','text') + '=\''+ sDeclId + '\'',1000,850,true,false);
+        }
+    }
+    function OpenRMSComplexAnalysisRequests()
+    {       
+          var sDeclarationId = MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null);
+          var sStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId',null);
+          var baseForm = "RMSDECL" +"~" +sStateId;
+          LockupScreen(baseForm,'ListRMSAnalysisRequestLs','ListRMSComplexAnalysisRequest',ProfileField('RMSComplexAnalysisRequest.ReferenceId','text') + '=\''+sDeclarationId+'\'',900,500,true,false);return false;
+          pageSubmit(null,false);       
+    }
+
+
+
+    function HideDCVehiclesAmendedLink()
+    {
+    var sStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId',null);
+    var portid=MCgetAttribute('user/@LogInPortId');
+    if(GBL_Locations.AmendDVAfterReleaseEnabledPorts.indexOf("," + portid + ",") > -1 &amp;&amp; (sStateId == "DeclarationReleased" || sStateId == "DeclarationExitReleasedState") &amp;&amp; IsRolesAvailable("ChiefInspector,InspectorSupervisor")){
+    if(HtmlElementById('Cell_AmendDeclarationVehicles') != null) HtmlElementById('Cell_AmendDeclarationVehicles').style.display = '';
+    if (HtmlElementById('AmendDeclarationVehicles') != null) HtmlElementById('AmendDeclarationVehicles').style.display = '';
+    }
+    else{
+    if(HtmlElementById('Cell_AmendDeclarationVehicles') != null) HtmlElementById('Cell_AmendDeclarationVehicles').style.display = 'none';
+    if (HtmlElementById('AmendDeclarationVehicles') != null) HtmlElementById('AmendDeclarationVehicles').style.display = 'none';
+    }
+
+    var objBaseForm = MCgetAttribute("pagelets/xpagelet/@BaseFormName",null);
+    if(objBaseForm=='AdditionalDocumentPage')
+    {
+    if(HtmlElementById('DeclarationVehicles')!=null) HtmlElementById('DeclarationVehicles').style.display='none';
+    }
+
+
+    }
+
+
+    function callAmendedDeclVehiclesPopUp()
+    {
+    var sDeclarationId = MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null);
+    var sStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId',null);
+    var sBillType  =  MCgetAttribute('data/Declarationsrecords/Declarations/@BillType','');
+    //LockupScreen('','ListAmendedDeclVehlPopUpPg','ListAmendedDeclarationVehicles',sDeclarationId+'~'+sStateId+'~'+sBillType,850,500,true,false);
+    LockupScreen('','ListAmendedDeclVehlPopUpPg','ListAmendedDeclarationVehicles',sDeclarationId+'~'+sStateId+'~'+sBillType,1000,600,false,false);
+    }
+
+
+    //added by sathya People as Consignee  alert 24/7/2017 start
+    function _ChkPeopleasConsignee()
+    {
+    var sResponse = true;
+    var sCCPId = MCgetAttribute('data/Declarationsrecords/Declarations/@CustomsControlProcedureId','');
+    var IsDRBayan=false;
+    var IsConsignmentTracking=false;
+    if(sCCPId ==  global_CustomsControlProcedures.CONSIGNMENT_TRACKING_FORM_FOR_LANDPORT) IsConsignmentTracking =true;
+
+    if(sCCPId == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_SEAPORT || sCCPId == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_AIRPORT || sCCPId == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_LANDPORT)
+    IsDRBayan=true;
+    if ( MCgetAttribute('data/Declarationsrecords/Declarations/@ConsigneeType') == 'p' &amp;&amp; !IsDRBayan &amp;&amp; !IsConsignmentTracking) {
+    sResponse = confirm(msgDictionary('errPeopleType'), msgDictionary('yes'), msgDictionary('no'));
+    (sResponse == true)? sResponse:sResponse=false;
+    }
+    return sResponse;
+    }
+    //added by sathya People as Consignee  alert 24/7/2017 End
+
+
+    function ViewOGADashboard()
+    {
+    var sDeclarationId=MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId');
+    var sUserId = MCgetAttribute("user/@UserId",null);
+    var sLangId = MCgetAttribute('user/@LanguageId','');
+    ShowRSViewerForPage('OGAGovernmentalApprovalsDashboard','[DeclarationOGDApp].[DeclarationId]='+sDeclarationId+ '[Users].[UserId]='+sUserId+ '[Users].[LanguageId]='+sLangId);
+    return false;
+    }
+
+    function showDeclarationDateAndTime()
+    {
+    var sGDExists = MCgetAttribute('data/Declarationsrecords/Declarations/@GDExists','');
+    if(sGDExists == 'True'){
+    $('#GDExistAlertRow').show();
+    }else{
+    $('#GDExistAlertRow').hide();
+    }
+
+    var sDeclDate = MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationDate', '')
+    var DeclDate = sDeclDate.split('T')[0];
+    var sTime = sDeclDate.split('T')[1];
+
+    DeclDate = DeclDate.split('-')[2] + '-' + DeclDate.split('-')[1] + '-' + DeclDate.split('-')[0] + ' ' + sTime.split(':')[0] + ':' + sTime.split(':')[1];
+    HtmlElementById('DeclarationDate').innerText= DeclDate;
+
+    var sDeclStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId', '')
+    if(sDeclStateId=="DeclarationModifiedState"||sDeclStateId=="DutyCalculatedState" || sDeclStateId=="DeclarationCreatedState" || sDeclStateId=="DeclarationRejected")
+    {
+    $("#ReadyToDist").hide();
+    }
+    else
+    {
+    var sDeclReadyDate = MCgetAttribute('data/Declarationsrecords/Declarations/@DecReadyDate', '')
+    if( sDeclReadyDate!= null &amp;&amp; sDeclReadyDate!="")
+    {
+    var sReadyDate = sDeclReadyDate.split('T')[0];
+    var sReadyTime = sDeclReadyDate.split('T')[1];
+
+    sReadyDate = sReadyDate.split('-')[2] + '-' + sReadyDate.split('-')[1] + '-' + sReadyDate.split('-')[0] + ' ' + sReadyTime.split(':')[0] + ':' + sReadyTime.split(':')[1];
+    if(HtmlElementById('DecReadyDate')!=null) HtmlElementById('DecReadyDate').innerText= sReadyDate;
+    }
+    }
+
+
+
+    }
+
+
+    function hidebtnValidateDeclVehicles()
+    {
+    //Added By chandra-starts
+    var sLoginPortId  =  MCgetAttribute('user/@LogInPortId','');
+    var DeclDate = MCgetAttribute('data/Declarationsrecords/Declarations/@DecDateCreated','');
+    DeclDate = DeclDate.split('T')[0];
+    DeclDate = DeclDate.split('-')[2]+'-'+DeclDate.split('-')[1]+'-'+DeclDate.split('-')[0];
+
+    //Added By chandra-ends
+    if(!fnCheckDeclVechicleEnhancedPortsEnabled(sLoginPortId, DeclDate))
+    {
+    if(HtmlElementById("ValidateDecVeh") != null)
+    HtmlElementById("ValidateDecVeh").style.display = "none";
+    }
+
+    var sWorkload = MCgetAttribute('data/Declarationsrecords/Declarations/@Workloadenabledport','');
+    if(sWorkload != null &amp;&amp; sWorkload != '' &amp;&amp; sWorkload == 'N' )
+	  {
+	  if(HtmlElementById("Delink") != null)
+	  HtmlElementById("Delink").style.display = "none";
+	  }
+	  else
+	  {
+	  if(HtmlElementById("Delink") != null)
+	  HtmlElementById("Delink").style.display = "";
+	  }
+
+	  }
+
+
+	  function BlinkAlertMsg()
+	  {
+	  //_alertMsgBlinkId=_startBlink('AlertMsg'); //Commented by Suhail to stop the blinking and display as a normal label
+	  }
+
+	  function hideLinksForArchivehideDecVehicle()
+	  {
+	  if(MCgetAttribute('data/Declarationsrecords/Declarations/@Archive','') == '1')
+	  {
+	  if(HtmlElementById('prnAtt') != null) 	HtmlElementById('prnAtt').style.display = 'none';
+	  if(HtmlElementById('PrintPromissary') != null) 	HtmlElementById('PrintPromissary').style.display = 'none';
+	  if(HtmlElementById('PrintPromissaryPP') != null) 	HtmlElementById('PrintPromissaryPP').style.display = 'none';
+	  if(HtmlElementById('transactionhistory') != null) 	HtmlElementById('transactionhistory').style.display = 'none';
+	  if(HtmlElementById('paymentTransaction') != null) 	HtmlElementById('paymentTransaction').style.display = 'none';
+	  if(HtmlElementById('ContainerDetails') != null) 	HtmlElementById('ContainerDetails').style.display = 'none';
+	  if(HtmlElementById('DeclarationVehicles') != null) 	HtmlElementById('DeclarationVehicles').style.display = 'none';
+	  if(HtmlElementById('transitroute') != null) 	HtmlElementById('transitroute').style.display = 'none';
+	  if(HtmlElementById('RejectionHistory') != null) 	HtmlElementById('RejectionHistory').style.display = 'none';
+	  if(MCgetAttribute('data/Declarationsrecords/Declarations/@BillType','') == '1343')if(HtmlElementById('lnkViewBOL') != null) 	HtmlElementById('lnkViewBOL').style.display = 'none';
+	  if(HtmlElementById('RejectDeclaration') != null) 	HtmlElementById('RejectDeclaration').style.display = 'none';
+	  }
+	  }
+
+	  function isRefExists()
+	  {
+
+	  if(MCgetAttribute('data/Declarationsrecords/Declarations/@RefDeclarationNumber','') == '')
+	  {
+	  var sErrorMsg = msgDictionary('errRefLinkExists');
+	  alert(sErrorMsg);
+	  return false;
+	  }
+	  else
+	  {
+	  return true;
+	  }
+	  }
+
+	  function hideDecVehicle()
+	  {
+
+	  var sDeclarationDate = MCgetAttribute('data/Declarationsrecords/Declarations/@DecDateCreated', '');
+	  var sPaymentFlag = false;
+
+	  if(sDeclarationDate != null &amp;&amp; isKNETOnlinePaymentEnabled(sDeclarationDate))
+    {
+    sPaymentFlag = true;
+    }
+
+    if(sPaymentFlag == false)
+    {
+    if(HtmlElementById('ViewDeclarationReceipts')!=null) HtmlElementById('ViewDeclarationReceipts').style.display='none';
+    }
+    else
+    {
+    var sStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId', '');
+    var sRejCount = MCgetAttribute('data/Declarationsrecords/Declarations/@RejectCount', '0');
+
+    if(IsRolesAvailable("ClearingAgent,ReadOnly,DR Broker,DirectReleaseAuditor,PWCSupport,Customs Operation,AuditorSupervisor,BWHClearingAgent"))
+    {
+    if(sStateId == 'DeclarationCreatedState' || sStateId == 'DeclarationCancelledState' || sStateId == 'CancelledByReqState' || (sStateId == 'DutyCalculatedState'  &amp;&amp; sRejCount &lt;= 0))
+	  {
+
+	  if(HtmlElementById('ViewDeclarationReceipts')!=null) HtmlElementById('ViewDeclarationReceipts').style.display='none';
+	  }
+	  else
+	  {
+	  if(HtmlElementById('ViewDeclarationReceipts')!=null) HtmlElementById('ViewDeclarationReceipts').style.display='';
+	  }
+	  }
+	  else
+	  {
+	  if(HtmlElementById('ViewDeclarationReceipts')!=null) HtmlElementById('ViewDeclarationReceipts').style.display='none';
+	  }
+	  }
+
+	  var isInspector = IsRoleExist("Inspector");
+	  var isInspectorSupervisor = IsRoleExist("InspectorSupervisor");
+	  var isChiefInspector = IsRoleExist("ChiefInspector");
+	  var sStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId','');
+	  var objBaseForm = MCgetAttribute("pagelets/xpagelet/@BaseFormName",null);
+	  if(sStateId == 'DeclarationCreatedState' || sStateId =='DeclarationSubmitted' || sStateId =='DutyCalculatedState' || sStateId =='DeclarationRejected' || sStateId =='DeclarationCancelledState')
+	  {
+	  if( (objBaseForm == 'ListPRDetailsOfClosedLs' || objBaseForm =='PassengerDetailsView' || objBaseForm =='PassengeManifestReceiptList'))
+	  {
+	  invoicecount = MCgetAttribute('data/Declarationsrecords/Declarations/CommercialInvoicesrecords/@TotalRecordsFetched','');
+	  if(invoicecount >= 1)
+	  {
+	  var ADDITEMColName = 'EditInvoice';
+	  var frmName = 'DeclarationInvoice';
+	  for (var i=0;i&lt;=invoicecount;i++)
+			              {
+				              var currADDITEMRowElement=HtmlElementById ('List_'+frmName+'_'+i+'_'+ADDITEMColName);
+				              if (currADDITEMRowElement!=null) 
+					              {		
+						              currADDITEMRowElement.disabled=true;
+					              }
+			              }
+		        }
+		        }
+    
+
+	if(isInspector || isInspectorSupervisor || isChiefInspector)
+    {
+    if(HtmlElementById('DeclarationVehicles')!=null)HtmlElementById('DeclarationVehicles').style.display = 'none';
+
+    }
+    }
+    //var stateid = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId','');
+    if( sStateId == 'DeclarationSeizedState')
+    {
+    invoicecount = MCgetAttribute('data/Declarationsrecords/Declarations/CommercialInvoicesrecords/@TotalRecordsFetched','');
+    if(invoicecount >= 1)
+    {
+    var ADDITEMColName = 'NewItem';
+    var frmName = 'DeclarationInvoice';
+    for (var i=0;i&lt;=invoicecount;i++)
+			{
+				var currADDITEMRowElement=HtmlElementById ('List_'+frmName+'_'+i+'_'+ADDITEMColName);
+				if (currADDITEMRowElement!=null) 
+					{		
+						currADDITEMRowElement.disabled=true;
+					}
+			}
+		}
+		}
+
+
+	var LANDED_BY_MISTAKE_FOR_AIRPORT_WITH_DO = global_CustomsControlProcedures.LANDED_BY_MISTAKE_FOR_AIRPORT_WITH_DO;
+	var LANDED_BY_MISTAKE_FOR_SEAPORT_WITH_DO = global_CustomsControlProcedures.LANDED_BY_MISTAKE_FOR_SEAPORT_WITH_DO;
+	var LANDED_BY_MISTAKE_FOR_LANDPORT_WITH_DO = global_CustomsControlProcedures.LANDED_BY_MISTAKE_FOR_LANDPORT_WITH_DO;
+	
+	var sCCPId = MCgetAttribute('data/Declarationsrecords/Declarations/@CustomsControlProcedureId','');
+	//if(sCCPId == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_SEAPORT || sCCPId == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_AIRPORT || sCCPId == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_LANDPORT
+	if(sCCPId == LANDED_BY_MISTAKE_FOR_AIRPORT_WITH_DO || sCCPId == LANDED_BY_MISTAKE_FOR_SEAPORT_WITH_DO || sCCPId ==LANDED_BY_MISTAKE_FOR_LANDPORT_WITH_DO)
+	{	
+		if(HtmlElementById('DeclarationVehicles')!=null)	
+			HtmlElementById('DeclarationVehicles').style.display = '';
+	}
+}
+
+/*
+function getDataForPrint(OtherRoles)
+{
+	var consigneetype = MCgetAttribute('data/Declarationsrecords/Declarations/@ConsigneeType',null);
+	if(consigneetype == 'o')
+	{
+		var consigneename = MCgetAttribute('data/Declarationsrecords/OrganizationsForDeclarationrecords/OrganizationsForDeclaration/@Name',null);
+	}
+	if(consigneetype == 'p')
+	{
+		var consigneename = MCgetAttribute('data/Declarationsrecords/PeopleForDeclarationrecords/PeopleForDeclaration/@Name',null);	
+	}
+	var agentid = MCgetAttribute('data/Declarationsrecords/Declarations/@AgentId',null);
+	var createdby = MCgetAttribute('data/Declarationsrecords/Declarations/@CreatedBy',null);
+	var OwnerLocId = MCgetAttribute('data/Declarationsrecords/Declarations/@OwnerLocId',null);
+	var OwnerOrgId = MCgetAttribute('data/Declarationsrecords/Declarations/@OwnerOrgId',null);
+	var AuditorId = MCgetAttribute('data/Declarationsrecords/Declarations/@AuditorId',null);
+	var Decno = MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationNumber',null); 
+	var Decdate = MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationDate',null); 
+	var sBillType = MCgetAttribute('data/Declarationsrecords/Declarations/@BillType',null);
+	var sGWt = MCgetAttribute('data/Declarationsrecords/Declarations/@GWt',null); 
+	var sHouseBillId = MCgetAttribute('data/Declarationsrecords/Declarations/@HouseBillId',null); 
+	var sDeliveryOrderId = MCgetAttribute('data/Declarationsrecords/Declarations/@DeliveryOrderId',null); 
+	var Decdate = MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationDate',null); 
+	var sArchive = MCgetAttribute('data/Declarationsrecords/Declarations/@Archive',null); 
+	
+	if(sArchive == '1')
+	{		
+		printOnCondition('CustomsDeclaration Report_ARC','PrePrint','',consigneename,agentid,createdby,OwnerLocId,OwnerOrgId,AuditorId,Decno,OtherRoles,sBillType,sGWt,sHouseBillId,sDeliveryOrderId,Decdate);
+	}
+	else
+	{
+		printOnCondition('CustomsDeclaration Report','PrePrint','',consigneename,agentid,createdby,OwnerLocId,OwnerOrgId,AuditorId,Decno,OtherRoles,sBillType,sGWt,sHouseBillId,sDeliveryOrderId,Decdate);
+	}
+}
+*/
+
+function getDataForPrint(OtherRoles,PrintType)
+{
+	var consigneetype = MCgetAttribute('data/Declarationsrecords/Declarations/@ConsigneeType',null);
+	if(consigneetype == 'o')
+	{
+		var consigneename = MCgetAttribute('data/Declarationsrecords/OrganizationsForDeclarationrecords/OrganizationsForDeclaration/@Name',null);
+	}
+	if(consigneetype == 'p')
+	{
+		var consigneename = MCgetAttribute('data/Declarationsrecords/PeopleForDeclarationrecords/PeopleForDeclaration/@Name',null);	
+	}
+	var agentid = MCgetAttribute('data/Declarationsrecords/Declarations/@AgentId',null);
+	var createdby = MCgetAttribute('data/Declarationsrecords/Declarations/@CreatedBy',null);
+	var OwnerLocId = MCgetAttribute('data/Declarationsrecords/Declarations/@OwnerLocId',null);
+	var OwnerOrgId = MCgetAttribute('data/Declarationsrecords/Declarations/@OwnerOrgId',null);
+	var AuditorId = MCgetAttribute('data/Declarationsrecords/Declarations/@AuditorId',null);
+	var Decno = MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationNumber',null); 
+	var sBillType = MCgetAttribute('data/Declarationsrecords/Declarations/@BillType',null);
+	var sGWt = MCgetAttribute('data/Declarationsrecords/Declarations/@GWt',null); 
+	var sHouseBillId = MCgetAttribute('data/Declarationsrecords/Declarations/@HouseBillId',null); 
+	var sDeliveryOrderId = MCgetAttribute('data/Declarationsrecords/Declarations/@DeliveryOrderId',null); 
+	var Decdate = MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationDate',null); 
+	var sArchive = MCgetAttribute('data/Declarationsrecords/Declarations/@Archive',null); 
+	
+	var sPrintType = (typeof(PrintType)=='undefined'?'PrePrint':PrintType)
+	
+	//Added by Jones - As Per Production Issue - KRTS-5454 - 10-July-2012 - Begin
+	var sStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId',null); 
+	if(AuditorId== null || AuditorId == "")
+	{
+		alert('PRINT DENIED');
+		return false;
+	}	
+	else if(sStateId == 'DeclarationSubmitted' || sStateId == 'DeclarationInspectionRejected' || sStateId == 'SubToAuditor' || sStateId == 'DeclarationCreatedState' ||
+		sStateId == 'DeclarationRejected' || sStateId == 'DeclarationAnalyzed' || sStateId == 'DutyCalculatedState' || sStateId == 'DeclarationModifiedState')
+		{
+			alert('PRINT DENIED');
+			return false;
+		}
+	//Added by Jones - As Per Production Issue - KRTS-5454 - 10-July-2012 - Ends
+	
+	printOnCondition('CustomsDeclaration Report',sPrintType,'',consigneename,agentid,createdby,OwnerLocId,OwnerOrgId,AuditorId,Decno,OtherRoles,sBillType,sGWt,sHouseBillId,sDeliveryOrderId,Decdate);
+}
+
+
+function EnableDisableInvFields()
+{	
+	if(HtmlElementById('RefDeclarationNumber') != null )
+	{
+		if(HtmlElementById('RefDeclarationNumber').value != '')
+		{
+			if(HtmlElementById('addinvoice') != null)HtmlElementById('addinvoice').style.display = '';
+			if(HtmlElementById('associateinvoice') != null)HtmlElementById('associateinvoice').style.display = '';
+			if(HtmlElementById('assrefinv') != null)HtmlElementById('assrefinv').style.display = 'none';		
+		}
+		
+	}
+}
+
+function CheckRefExists(frm,decNo)
+{
+	setParameterList(global_arrRegParameters, Array('','CheckDecNoExistance',decNo,'','',getParameter('pageid',''),'0'));
+	pageSubmit(frm,false);	
+}
+
+function CheckRefDec()
+{	
+	/*
+	if(HtmlElementById('RefDecRow')!= null)
+	{		
+		var ccpid = MCgetAttribute('data/Declarationsrecords/CustomsControlProceduresrecords/CustomsControlProcedures/@CustomsControlProcedureId','');
+		
+		if(ccpid == global_CustomsControlProcedures.RE_EXPORT_BILL_FOR_AIRPORT || ccpid == global_CustomsControlProcedures.RE_EXPORT_FOR_IMPORT_BILL_FOR_SEAPORT || ccpid == global_CustomsControlProcedures.RE_EXPORT_FOR_IMPORT_BILL_FOR_LANDPORT)
+		{
+			HtmlElementById('RefDecRow').style.display = '';							
+			var sInvId = MCgetAttribute('data/Declarationsrecords/Declarations/CommercialInvoicesrecords/CommercialInvoices/@CommercialInvoiceId','');
+						
+			var sRefId = MCgetAttribute('data/Declarationsrecords/Declarations/DeclarationReferencesrecords/DeclarationReferences/@ReferenceDeclarationId','');
+			var pageid = getParameter('pageid','');
+			if(sRefId != '' || sInvId != '' || pageid == 'ExportBillCommercialInvoice')
+			{			
+				HtmlElementById('RefDeclarationNumber').disabled = true;
+				HtmlElementById('RefDeclarationDate').disabled = true;
+				HtmlElementById('RefDeclarationDateDatePicker').disabled = true;				
+			}
+			else
+			{
+				HtmlElementById('RefDeclarationNumber').disabled = false;
+				HtmlElementById('RefDeclarationDate').disabled = false;
+				HtmlElementById('RefDeclarationDateDatePicker').disabled = false;				
+			}
+		}
+		else
+		{
+			HtmlElementById('RefDecRow').style.display = 'none';		
+		}
+		EnableDisableInvFields();		
+	}
+	*/
+}
+  
+/*
+function hideDeclAlertMsgRow()
+{
+	var sAlertMsg = MCgetAttribute('data/Declarationsrecords/Declarations/@AlertMsg',null);
+    if(sAlertMsg ==null || sAlertMsg =='')
+    {
+		if(HtmlElementById('DeclAlertMsgRow') != null)
+		HtmlElementById('DeclAlertMsgRow').style.display = 'none';
+	}
+}
+*/
+function hideDeclAlertMsgRow()
+
+{
+
+	var isAuditor=IsRoleExist("Customs Operation");
+	var sBlinkMsg=msgDictionary('alertMsgMaqasa');
+	var sMaqasa = MCgetAttribute('data/Declarationsrecords/Declarations/@Maqasa',''); 
+	if(!(sMaqasa=='1' &amp;&amp; isAuditor))
+	  {
+	  HtmlElementById("DeclAlertMsgRow").style.display='none';
+	  }
+	  var sMaqasaDueNoAvailable = MCgetAttribute('data/Declarationsrecords/Declarations/@MADuenoavilablity','');
+	  if(sMaqasaDueNoAvailable=='Notavailable')
+	  HtmlElementById("MADueNoAlert").style.display='';
+	  else
+	  HtmlElementById("MADueNoAlert").style.display='none';
+
+	  }
+
+	  function DisableBack()
+	  {
+	  history.go(+1);
+	  }
+	  function setDeclaration_Page_title() {
+
+	  var sDeclarationDate = MCgetAttribute('data/Declarationsrecords/Declarations/@DecDateCreated', '');
+	  var sPaymentFlag = false;
+
+	  if(sDeclarationDate != null &amp;&amp; isKNETOnlinePaymentEnabled(sDeclarationDate))
+    {
+    sPaymentFlag = true;
+    }
+
+    if(sPaymentFlag == false)
+    {
+    if(HtmlElementById('ViewDeclarationReceipts')!=null) HtmlElementById('ViewDeclarationReceipts').style.display='none';
+    }
+    else
+    {
+    var sStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId', '');
+    var sRejCount = MCgetAttribute('data/Declarationsrecords/Declarations/@RejectCount', '0');
+
+    if(IsRolesAvailable("ClearingAgent,ReadOnly,DR Broker,DirectReleaseAuditor,PWCSupport,Customs Operation,AuditorSupervisor,BWHClearingAgent"))
+    {
+    if(sStateId == 'DeclarationCreatedState' || sStateId == 'DeclarationCancelledState' || sStateId == 'CancelledByReqState' || (sStateId == 'DutyCalculatedState' &amp;&amp; sRejCount &lt;= 0))
+	  {
+	  if(HtmlElementById('ViewDeclarationReceipts')!=null) HtmlElementById('ViewDeclarationReceipts').style.display='none';
+	  }
+	  else
+	  {
+	  if(HtmlElementById('ViewDeclarationReceipts')!=null) HtmlElementById('ViewDeclarationReceipts').style.display='';
+	  }
+	  }
+	  else
+	  {
+	  if(HtmlElementById('ViewDeclarationReceipts')!=null) HtmlElementById('ViewDeclarationReceipts').style.display='none';
+	  }
+	  }
+
+
+	  var sroleExists = IsRolesExist("Customs Operation,Inspector");
+	  var sDeclStateId = MCgetAttribute("data/Declarationsrecords/Declarations/DeclarationOGDApprecords/DeclarationOGDApp/@StateId",null)
+	  if(sroleExists &amp;&amp; sDeclStateId=='DeclarationOGDAppNotApplicable')    
+    {
+       $(".OGAClass").show();
+    }
+    else
+    {
+      $(".OGAClass").hide();
+    }
+    if(sroleExists &amp;&amp; sDeclStateId=='DeclarationOGDAppRejectedState')    
+    {
+       $(".OGDClass").show();
+    }
+    else
+    {
+      $(".OGDClass").hide();
+    }
+
+    //This function is to handle the view/edit declaration title, in case of using Arabic Language.
+    //sArabicLangCode is used from pagelet.xsl
+    if (interfaceLang.toUpperCase()==sArabicLangCode.toUpperCase()) {
+    if (typeof(Declaration_Page_title)!='undefined' &amp;&amp; typeof(xmlServiceDocument)!='undefined' ) {
+						//UpdateTextNode(Declaration_Page_title,MCgetAttribute("data/Declarationsrecords/BillTypesrecords/BillTypes/@Description","") + " " + MCgetAttribute("data/Declarationsrecords/BillReasonrecords/BillReason/@Description",""),true);
+						UpdateTextNode(Declaration_Page_title,MCgetAttribute("data/Declarationsrecords/CustomsControlProceduresrecords/CustomsControlProcedures/@Description",""),true);
+					}
+					else
+					{
+					 window.setTimeout("setDeclaration_Page_title()",20);
+					}
+					
+				}
+				HideInspectionRequired()				
+			}
+			function showReason(frmName)
+			{
+				var frm=document.forms[frmName];
+				//var reason = MCgetAttribute("data/Declarationsrecords/CustomsControlProceduresrecords/CustomsControlProcedures/@Description",""),true)
+			}
+			function AssignPortOfLoading(frmName)
+			{
+				var portOfLoading = MCgetAttribute('data/Declarationsrecords/DeclarationDetailsrecords/DeclarationDetails/@PortsOfLoadingId','text');
+				var frmObject = document.forms[frmName];
+				if ( portOfLoading == null || portOfLoading == '' )
+				{
+					frmObject.PortsOfLoadingId.value = MCgetAttribute('user/@LogInPortId','');
+					frmObject.LoadingPort.value = MCgetAttribute('user/@LogInPortName','');
+				}
+			}
+			
+			function CheckState(frmname,Action)
+			{
+				var frm=document.forms[frmname];
+				
+				if(MCgetAttribute("data/Declarationsrecords/Declarations/@StateId",null) == 'DutyCalculatedState')
+				{
+					//setParameterList(global_arrRegParameters, Array('','SubmitDeclaration','','ViewDeclarationGeneral',getParameter('actioncriteria',null),'ViewSAD','1'));
+					//setParameterList(global_arrRegParameters, Array('','SubmitDeclaration','','Confirmations','','DeclarationConfirmation','1'));
+					// Added by Nandu on 6/Feb/2005					
+					//setParameter('pageid','DeclarationConfirmation');	
+					setParameterList(global_arrRegParameters, Array('','SubmitDeclaration','','Confirmations','','DeclarationConfirmation','1' , '1', getParameter('actionid',null),getParameter('actioncriteria',null),getParameter('pageid',null)));
+					
+					
+
+				}
+				else
+				{				
+					
+					setParameterList(global_arrRegParameters, Array('','SubmitDeclaration','','Confirmations','','DeclarationConfirmation','1'));
+				}
+			}
+			
+			
+			function HideInspectionRequired()
+			{	
+				
+				var nPage;
+				
+				var InspectionReq=HtmlElementById("InsReq");
+				
+				var count;
+				
+				if(HtmlElementById('hdPrintCount')!=null)
+				{
+					count = HtmlElementById('hdPrintCount').value;				
+				}	
+				
+				if(count == '' || count == "0")
+				{
+					
+					if(HtmlElementById('PrintPrePrintedBayan') != null)
+						HtmlElementById('PrintPrePrintedBayan').style.display = 'block';
+				}		
+				else		
+				{
+					
+					if(HtmlElementById('PrintPrePrintedBayan') != null)
+					{
+						if(bHidePrintOption == 'true')
+							HtmlElementById('PrintPrePrintedBayan').style.display = 'none';
+						else
+							HtmlElementById('PrintPrePrintedBayan').style.display = 'block';
+							
+					}	
+					
+				}
+				
+				if (InspectionReq != null)
+				{
+					
+					if(MCgetAttribute("data/Declarationsrecords/Declarations/@CustomsControlProcedureId","")== global_CCPPageId.DirectReleaseImportBill)
+					{	
+						
+						InspectionReq.style.display='';
+					}
+					else
+					{
+						
+						InspectionReq.style.display='none';
+					}
+				}
+					
+			
+			}
+			
+			function selectInvoicePage(frm){		
+				var nPage;
+				if(frm.CustomsControlProcedureId.value == global_CCPPageId.DirectReleaseImportBill)
+					//nPage="DirectReleaseCommercialInvoice";
+					nPage="CommercialInvoice";
+				else
+					nPage="CommercialInvoice";
+					
+				if(ExecuteListAction("setParameterList(global_arrRegParameters, Array('','NewCommercialInvoiceOne','','','','"+nPage+"',''))","noexecution")!=false)
+				{		
+					pageSubmit(frm,true);
+				}
+				return;
+			}
+			
+			function disableAttach(){
+				var AttachBtn=HtmlElementById ('AttachPrint');
+				var AttachReq=MCgetAttribute("data/Declarationsrecords/Declarations/@AttachmentRequired",null);
+				if (AttachBtn!=null) AttachBtn.disabled=((AttachReq=='true')?false:true);
+			}
+			function editInvoicePage(){		
+				var nPage;
+				if(document.all["CustomsControlProcedureId"].value == global_CCPPageId.DirectReleaseImportBill)
+					//nPage="DirectReleaseCommercialInvoice";
+					nPage="CommercialInvoice";
+				else if(document.all["CustomsControlProcedureId"].value == global_CCPPageId.GeneralTransitBill)
+					nPage="TransitCommercialInvoice";
+				else
+					nPage="CommercialInvoice";
+				
+				return ExecuteListAction("setParameterList(global_arrRegParameters, Array('','OpenCommercialInvoiceOne','','','','"+nPage+"',''))","noexecution");
+
+			}
+			
+			function newInvoiceItemPage(){
+				var nPage;
+				if(document.all["CustomsControlProcedureId"].value == global_CCPPageId.DirectReleaseImportBill)
+					//nPage="DirectReleaseCommercialInvoiceItem";
+					nPage="CommercialInvoiceItem";
+				else if(document.all["CustomsControlProcedureId"].value == global_CCPPageId.GeneralTransitBill)
+					nPage="TransitCommercialInvoiceItem";
+				else
+					nPage="CommercialInvoiceItem";
+				
+				return ExecuteListAction("setParameterList(global_arrRegParameters, Array('','NewCommercialInvoiceItemOne','','','','"+nPage+"',''))","noexecution");
+			}
+			function editExportInvoicePage()
+			{		
+				//ExecuteListAction('setParameterList(global_arrRegParameters, Array(\'\',\'OpenCommercialInvoiceThree\', \'\', \'\', \'\', \'ExportBillCommercialInvoice\',\'0\'))','noexecution',this);	
+				return ExecuteListAction("setParameterList(global_arrRegParameters, Array('','OpenCommercialInvoiceThree','','','','ExportBillCommercialInvoice','0'))","noexecution");
+
+			}
+			function ViewCommercialInvoice(thisRowID)
+			{
+				return ExecuteListAction("LockupScreen('','ViewCommercialInvoicePopUp','ViewCommercialInvoice','"+ProfileField('CommercialInvoices.CommercialInvoiceId','text') + " " + "=\\'"+tdValue(thisRowID,'CommercialInvoiceId')+"\\'',1000,600,true,false)","noexecution");
+			}
+			function newExportInvoiceItemPage()
+			{
+				//ExecuteListAction('setParameterList(global_arrRegParameters, Array(\'\',\'NewCommercialInvoiceItemOne\', \'\', \'\', \'\', \'ExportBillCommercialInvoiceItem\',\'0\'))','noexecution',this);
+				return ExecuteListAction("setParameterList(global_arrRegParameters, Array('','NewCommercialInvoiceItemOne','','','','ExportBillCommercialInvoiceItem','0'))","noexecution");
+			}
+			function disableCheckBox(frmName,actionid){
+				var ctl=document.forms[frmName].elements['PeopleVerified'];					
+				var consigneeType=MCgetAttribute("data/Declarationsrecords/Declarations/@ConsigneeType",null);
+				if (ctl!=null) {
+					if ((consigneeType=='p') &amp;&amp; isActionAvailable(actionid)) ctl.disabled=false;
+					else {ctl.checked=true;ctl.disabled=true;}
+				}
+			}
+			
+			function disableConsignee(frmName)
+			{
+					
+				var frm=document.forms[frmName];		
+				if (frm!=null)
+				{
+					
+					//frm.consigneebrowsebutton.disabled=true;
+				}
+				
+				if(frm != null &amp;&amp; frmName == 'DirectReleaseSAD')
+				{
+					var invoiceId = MCgetAttribute("data/Declarationsrecords/Declarations/CommercialInvoicesrecords/CommercialInvoices/@CommercialInvoiceId",null);
+					if(invoiceId != null &amp;&amp; invoiceId!='')
+					{
+						if(frm.createinvoiceitem!=null)
+						{
+							frm.createinvoiceitem.disabled=true;
+						}						
+					}						
+				}
+				if(frm != null &amp;&amp; frmName == 'TransitBillSAD')
+				{
+					var invoiceId = MCgetAttribute("data/Declarationsrecords/Declarations/CommercialInvoicesrecords/CommercialInvoices/@CommercialInvoiceId",null);
+					if(invoiceId != null &amp;&amp; invoiceId!='')
+    {
+    if(frm.createinvoiceitem!=null)
+    {
+    frm.createinvoiceitem.disabled=true;
+    }
+    }
+    }
+    }
+
+    function disableCtrlsForRef(){
+    var refDeclId=MCgetAttribute("data/Declarationsrecords/Declarations/@RefDeclarationId",null);
+    var LANDED_BY_MISTAKE_FOR_AIRPORT_WITHOUT_DO = global_CustomsControlProcedures.LANDED_BY_MISTAKE_FOR_AIRPORT_WITHOUT_DO;
+    var LANDED_BY_MISTAKE_FOR_SEAPORT_WITHOUT_DO = global_CustomsControlProcedures.LANDED_BY_MISTAKE_FOR_SEAPORT_WITHOUT_DO;
+    var LANDED_BY_MISTAKE_FOR_LANDPORT_WITHOUT_DO = global_CustomsControlProcedures.LANDED_BY_MISTAKE_FOR_LANDPORT_WITHOUT_DO;
+
+    var QUO_EXPORT_BILL_FOR_AIRPORT = global_CustomsControlProcedures.EXPORT_BILL_FOR_AIRPORT;
+    var QUO_EXPORT_BILL_FOR_SEAPORT = global_CustomsControlProcedures.EXPORT_BILL_FOR_SEAPORT;
+    var QUO_EXPORT_BILL_FOR_LANDPORT = global_CustomsControlProcedures.EXPORT_BILL_FOR_LANDPORT;
+
+    var QUO_STATISTICAL_BILL_FOR_LAND = global_CustomsControlProcedures.STATISTICAL_BILL_FOR_LAND;
+    var QUO_STATISTICAL_BILL_FOR_AIR = global_CustomsControlProcedures.STATISTICAL_BILL_FOR_AIR;
+    var QUO_STATISTICAL_BILL_FOR_SEA = global_CustomsControlProcedures.STATISTICAL_BILL_FOR_SEA;
+
+    var QUO_EXPORT_BILL_FOR_FREEZONE   = global_CustomsControlProcedures.EXPORT_BILL_FOR_FREEZONE;
+
+    var CCPID = MCgetAttribute('data/Declarationsrecords/Declarations/@CustomsControlProcedureId','text');
+
+    if (refDeclId!='' &amp;&amp; refDeclId!=null)
+				{
+										//if(HtmlElementById ("weight")!=null)
+					//	HtmlElementById ("weight").disabled=true;
+					HtmlElementById ("unitprice").disabled=true;
+					//HtmlElementById ("totalprice").disabled=true;
+					var sStateId = MCgetAttribute("data/CommercialInvoiceItemsrecords/HSCodeForDeclarationrecords/HSCodeForDeclaration/@StateId",null);
+					if (sStateId!=null &amp;&amp; sStateId !='')
+					{
+						var sRefCItemId='';
+						var strXml = xmlServiceDocument.selectSingleNode(rootNodeName + "/" + dataNodeName + "/CommercialInvoiceItemsrecords");
+						strXml = OuterXML(strXml)		
+						var myReq = new SilentActionCall('CheckReferenceCommercialInvoiceItemsStatus','',fireOnConditionIfExists,strXml,'servicedocument','actionservice/exception');
+						myReq.StartRequest();
+						myReq = null;		
+						function fireOnConditionIfExists(xmlRes)
+						{
+							if(xmlRes[0].getAttribute('code') != '')							
+								sRefCItemId = '1';							
+							else							
+								sRefCItemId = '0';							
+						}
+						
+						if((sStateId == 'TariffItemsCreatedState' || sStateId == 'TariffItemsModifiedState')&amp;&amp; sRefCItemId == '0')
+    {
+    HtmlElementById ("hscode").disabled=true;
+    if(HtmlElementById ("hscodebrowsebutton")!=null)
+    {
+    HtmlElementById ("hscodebrowsebutton").disabled=true;
+    }
+    if(HtmlElementById ("browsebutton")!=null)
+    {
+    HtmlElementById ("browsebutton").disabled=true;
+    }
+    }
+    else
+    {
+    HtmlElementById ("hscode").disabled=false;
+    if(HtmlElementById ("hscodebrowsebutton")!=null)
+    {
+    HtmlElementById ("hscodebrowsebutton").disabled=false;
+    }
+    if(HtmlElementById ("browsebutton")!=null)
+    {
+    HtmlElementById ("browsebutton").disabled=false;
+    }
+    if(HtmlElementById('TempExpCode') != null)HtmlElementById('TempExpCode').disabled = true;
+    if(HtmlElementById('description') != null)HtmlElementById('description').disabled = true;
+    if(HtmlElementById('country') != null)HtmlElementById('country').disabled = true;
+    if(HtmlElementById('countrybrowsebutton') != null)HtmlElementById('countrybrowsebutton').disabled = true;
+    if(HtmlElementById('HSCodeDescription') != null)HtmlElementById('HSCodeDescription').disabled = true;
+    if(HtmlElementById('totalprice') != null)HtmlElementById('totalprice').disabled = false;
+    if(HtmlElementById('unitprice') != null)HtmlElementById('unitprice').disabled = true;
+    if(HtmlElementById('txtpackagetype') != null)HtmlElementById('txtpackagetype').disabled = true;
+    if(HtmlElementById('btnPackageType') != null)HtmlElementById('btnPackageType').disabled = true;
+    if(HtmlElementById('IsRestricted') != null)HtmlElementById('IsRestricted').disabled = true;
+    if(HtmlElementById('volume') != null)HtmlElementById('volume').disabled = true;
+    if(HtmlElementById('txtRestrictionName') != null)HtmlElementById('txtRestrictionName').disabled = true;
+    if(HtmlElementById('btnRestrictionType') != null)HtmlElementById('btnRestrictionType').disabled = true;
+    if(HtmlElementById('txtRestrictionId') != null)HtmlElementById('txtRestrictionId').disabled = true;
+    if(HtmlElementById('noofpackages') != null)	HtmlElementById('noofpackages').disabled = false;
+    if(HtmlElementById('weight') != null)HtmlElementById('weight').disabled = false;
+    if(HtmlElementById('Gross1') != null)HtmlElementById('Gross1').disabled = false;
+    if(HtmlElementById('quantity') != null)	HtmlElementById('quantity').disabled = false;
+    if(HtmlElementById('Manufacturer') != null)	HtmlElementById('Manufacturer').disabled = true;
+    if(HtmlElementById('oldunitprice') != null)	HtmlElementById('oldunitprice').disabled = true;
+    if(HtmlElementById('cmdConvert') != null)	HtmlElementById('cmdConvert').disabled = true;
+    if(HtmlElementById('IsExempted') != null)	HtmlElementById('IsExempted').disabled = true;
+    if(HtmlElementById('volume') != null)	HtmlElementById('volume').disabled = true;
+    if(HtmlElementById('OtherReleases') != null)	HtmlElementById('OtherReleases').disabled = true;
+    if(HtmlElementById('ExemptionDetails') != null)	HtmlElementById('ExemptionDetails').disabled = true;
+    if(HtmlElementById('IsRestricted').checked == true)
+    if(HtmlElementById('RestrictionRelRef') != null)	HtmlElementById('RestrictionRelRef').disabled = false;
+    else
+    if(HtmlElementById('RestrictionRelRef') != null)	HtmlElementById('RestrictionRelRef').disabled = true;
+    }
+    }
+    }
+    //Added by Jones - To Show Hide HCSode Tree ViewLink - 22-June-2011 - Begin
+    var StateId=MCgetAttribute('data/CommercialInvoiceItemsrecords/CommercialInvoiceItems/@StateId',null);
+    if(StateId != 'CommercialInvoiceItemStartState')
+    {
+    if(HtmlElementById('lnkTreeView') != null)HtmlElementById('lnkTreeView').style.display='';
+    if(HtmlElementById('lnkQuota') != null)HtmlElementById('lnkQuota').style.display='';
+    }
+    else
+    {
+    if(HtmlElementById('lnkTreeView') != null)HtmlElementById('lnkTreeView').style.display='none';
+    if(HtmlElementById('lnkQuota') != null)HtmlElementById('lnkQuota').style.display='none';
+    }
+
+    if (CCPID == LANDED_BY_MISTAKE_FOR_AIRPORT_WITHOUT_DO || CCPID == LANDED_BY_MISTAKE_FOR_SEAPORT_WITHOUT_DO || CCPID ==LANDED_BY_MISTAKE_FOR_LANDPORT_WITHOUT_DO)
+    {
+    if(HtmlElementById('lnkQuota') != null)HtmlElementById('lnkQuota').style.display='none';
+    }
+
+
+    if(CCPID == QUO_EXPORT_BILL_FOR_AIRPORT || CCPID == QUO_EXPORT_BILL_FOR_SEAPORT || CCPID == QUO_EXPORT_BILL_FOR_LANDPORT || CCPID ==QUO_STATISTICAL_BILL_FOR_LAND ||CCPID ==QUO_STATISTICAL_BILL_FOR_AIR || CCPID ==QUO_STATISTICAL_BILL_FOR_SEA || CCPID == QUO_EXPORT_BILL_FOR_FREEZONE)
+    {
+    if(StateId != 'CommercialInvoiceItemStartState')
+    {
+    if(HtmlElementById('lnkQuota') != null)HtmlElementById('lnkQuota').style.display='';
+    }
+    }
+    else
+    {
+
+    if(HtmlElementById('lnkQuota') != null)HtmlElementById('lnkQuota').style.display='none';
+
+    }
+
+    //Added by Jones - Ends
+    }
+
+    function disableListLink(frmName,colName)
+    {
+    //frmName is the id of the List
+    //ColName is the name attribute value of the cell containing the Hyperlink
+    HideActionsForBoundedInboundBayan();
+
+    var refDeclId=MCgetAttribute("data/Declarationsrecords/Declarations/@RefDeclarationId",null);
+    var refDeclNumber=MCgetAttribute("data/Declarationsrecords/Declarations/@RefDeclarationNumber",null);
+    for (var i=0;;i++)
+    {
+    var currRowElement=HtmlElementById ('List_'+frmName+'_'+i+'_'+colName);
+    if (currRowElement!=null)
+    {
+    if(refDeclNumber!=null &amp;&amp; refDeclNumber.Trim().length&gt;0 )
+							currRowElement.disabled=false;
+						else
+							currRowElement.disabled=(refDeclId!=''?true:false);
+					}
+					else break;				
+				}
+				
+				
+				if(checkBill() == 'true' || checkOrgingType()=='true' || checkState()=='true')
+				{
+					for (var i=0;;i++)
+					{
+						var currRowElement=HtmlElementById ('List_'+frmName+'_'+i+'_'+colName);
+						if (currRowElement!=null)
+						{	
+							if(refDeclNumber!=null &amp;&amp; refDeclNumber.Trim().length&gt;0 )
+								currRowElement.disabled=false;
+							else	
+								currRowElement.disabled=true;
+						}
+						else break;
+						
+						if(checkState()=='true')
+						{
+							currRowElement=HtmlElementById ('List_'+frmName+'_'+i+'_EditInvoice');
+							if (currRowElement!=null)
+							{	
+								if(refDeclNumber!=null &amp;&amp; refDeclNumber.Trim().length&gt;0 )
+	  currRowElement.disabled=false;
+	  else
+	  currRowElement.disabled=true;
+	  }
+	  }
+	  }
+	  }
+
+	  if(HtmlElementById('rowCancellation') != null)
+	  {
+	  var sStateId=MCgetAttribute("data/Declarationsrecords/Declarations/@StateId",null);
+	  if(sStateId == 'DeclarationCancelledState')
+	  {
+	  HtmlElementById('rowCancellation').style.display = '';
+	  }
+	  else
+	  {
+	  HtmlElementById('rowCancellation').style.display = 'none';
+	  }
+	  }
+
+	  var BillType  =  MCgetAttribute('data/Declarationsrecords/Declarations/@BillType','');
+	  var CCPTypeId = MCgetAttribute('data/Declarationsrecords/Declarations/@CustomsControlProcedureId','');
+
+	  /*
+	  if( BillType == global_BillType.Export )
+	  //|| CCPTypeId == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_AIRPORT ||
+	  //	CCPTypeId == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_SEAPORT ||
+	  //	CCPTypeId == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_LANDPORT  )
+	  {
+	  if ( HtmlElementById('DeclarationVehicles') != null )
+	  {
+	  HtmlElementById('DeclarationVehicles').disabled = true;
+	  HtmlElementById('DeclarationVehicles').onclick ='';
+	  }
+	  }
+	  */
+	  if ( CCPTypeId == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_AIRPORT ||
+	  CCPTypeId == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_SEAPORT ||
+	  CCPTypeId == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_LANDPORT )
+	  {
+	  if ( HtmlElementById('viewCCPReqDocs') != null )
+	  {
+	  HtmlElementById('viewCCPReqDocs').disabled = true;
+	  HtmlElementById('viewCCPReqDocs').onclick ='';
+	  }
+	  if(HtmlElementById('ItemsForDocsMiss')!=null )
+	  {
+	  HtmlElementById('ItemsForDocsMiss').disabled = true;
+	  HtmlElementById('ItemsForDocsMiss').onclick ='';
+	  }
+	  }
+
+
+
+
+	  }
+
+	  function checkState()
+	  {
+	  var sStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId','');
+	  if (sStateId == 'AwForApp' || sStateId =='SubToAuditor' || sStateId =='DeclarationReleased' || sStateId =='DeclarationExitReleasedState' || sStateId =='DeclarationPaidInRedState' || sStateId =='DeclarationCancelledState')
+	  {
+	  return 'true';
+	  }
+	  else
+	  {
+	  return 'false';
+	  }
+	  }
+	  function disableCalculateDutyChkBox()  // Coded by Gopinath Mani for Hiding Calculate Customs Duty Checkbox for a specific CCP
+	  {
+	  //N var GENERAL_STATISTICAL_BILL_FROM_KFTZ_TO_GCC = 'ED551C8265D045B491A167A199B6287B';
+	  var GENERAL_STATISTICAL_BILL_FROM_KFTZ_TO_GCC = global_CustomsControlProcedures.GENERAL_STATISTICAL_BILL_FROM_KFTZ_TO_GCC;
+
+
+	  var CCPID = MCgetAttribute('data/Declarationsrecords/Declarations/@CustomsControlProcedureId','text');
+	  if ( CCPID == GENERAL_STATISTICAL_BILL_FROM_KFTZ_TO_GCC )
+	  HtmlElementById('CalcCustDutyRow').style.display = '';
+	  else
+	  HtmlElementById('CalcCustDutyRow').style.display = 'none';
+	  }
+
+	  function disableConsigneeLookUp(colName)
+	  {
+	  if (HtmlElementById (colName)!=null)
+	  {
+	  HtmlElementById (colName).disabled = true;
+	  }
+	  }
+	  function disableDeclaratonDate(frmName)
+	  {
+	  var frmObject = document.forms[frmName];
+	  if ( frmName == 'SAD' )
+	  {
+	  frmObject.DeclarationDate.disabled = true;
+	  frmObject.DeclarationDateDatePicker.disabled = true;
+	  }
+	  else if ( frmName == 'DeclarationExportBill' )
+	  {
+	  frmObject.date.disabled = true;
+	  frmObject.dateDatePicker.disabled = true;
+	  }
+	  }
+
+	  function eusiteConfigurationForItem(frmName)
+	  {
+	  var frm = document.forms[frmName];
+	  if(EUSite == 'yes')
+	  {
+	  TarrifRow1.style.display='none';
+	  TarrifRow2.style.display='none';
+	  TaricRow1.style.display='';
+	  TaricRow2.style.display='';
+	  frm.quantity.setAttribute('NoSave','yes',true);
+	  }
+	  else
+	  {
+	  TaricRow1.style.display='none';
+	  TaricRow2.style.display='none';
+	  TarrifRow1.style.display='';
+	  TarrifRow2.style.display='';
+	  frm.quantity1.setAttribute('NoSave','yes',true);
+	  }
+
+	  }
+
+	  function HideReasonForRemarks()
+	  {
+	  var nPage;
+	  var rowreason = HtmlElementById("rowreason");
+	  var rowreason1 = HtmlElementById("rowreason1");
+	  var ReasonForRejectionForm = HtmlElementById("ReasonForRejectionForm");
+	  if (rowreason!= null)
+	  {
+	  //var customsrole=MCgetAttribute("user/@Roles",null);
+	  var isCustoms=IsRoleExist("Customs");
+	  var isSysAdmin=IsRoleExist("SysAdmin");
+
+	  //if (customsrole.indexOf("Customs")&gt;-1 || customsrole.indexOf("SysAdmin")&gt;-1 )
+					if (isCustoms ||isSysAdmin )
+					{
+						rowreason.style.display='';
+						rowreason1.style.display='';
+					}
+					else
+					{
+						rowreason.style.display='none';
+						rowreason1.style.display='none';
+					}
+				}
+			}
+			
+			function checkCarrierTypeId(objCtl,bOpenPopup)
+			{			
+				if(objCtl.form.carriertype.value=='')
+				{									
+					objCtl.form.vesselname.value="";					
+					ShowFormException(objCtl.form.formexception.value,msgDictionary('carriertyperequired'),'carriertype');
+				}
+				else
+				{					
+					if (! bOpenPopup)
+					{
+						 SearchTest(objCtl.form.name,'ListCarriers','ListCarriers',ProfileField('Carriers.CarrierName','text')+' LIKE N\''+EncodeCriteriaFieldValue(objCtl.value)+'%\' and '+ ProfileField('Carriers.CarrierTypeId','text') + '=\''+EncodeCriteriaFieldValue(objCtl.form.carriertype.value)+'\'',resetVesselname,updateVesselname,null,rootNodeName+'/'+dataNodeName+'/'+'Carriersrecords','Carriers',850,370);
+						 
+					}
+					else LockupScreen(objCtl.form.name,'ListCarriers','ListCarriers',ProfileField('Carriers.CarrierTypeId','text') + '=\''+EncodeCriteriaFieldValue(objCtl.form.carriertype.value)+'\'' + 'And 1=2',850,370,true,false);
+				}
+			}
+			
+			function resetVesselname(){     
+				//reset values, related to VesselName.
+				var objBaseForm=document.forms["DeclarationExportBill"];      
+				//objBaseForm.CarrierId.value = "";
+				objBaseForm.vesselname.value="";
+				//objBaseForm.Voyage.value="";
+			}     
+			function updateVesselname(xmlObjTemp){   				
+				//update the values, related to VesselName. 
+				var objBaseForm=document.forms["DeclarationExportBill"];  
+				objBaseForm.CarrierId.value =xmlObjTemp.getAttributeNode("CarrierId").nodeValue;
+				objBaseForm.vesselname.value   =xmlObjTemp.getAttributeNode("CarrierName").nodeValue;
+				//objBaseForm.Voyage.value = xmlObjTemp.getAttributeNode("CarrierNumber").nodeValue;
+				
+				ClearErrorMsg(objBaseForm.formexception.value);
+			}
+			
+			function resetCountry(){   			
+	//reset values, related to Country.
+	var objBaseForm=document.forms["TransitBillSAD"];            
+	objBaseForm.TransitCountryID.value = "";
+	objBaseForm.Transitcountry.value="";
+}        
+
+function updateCountry(xmlObjTemp){ 		
+				//update the values, related to Country.     
+				var objBaseForm=document.forms["TransitBillSAD"];    
+				objBaseForm.TransitCountryID.value =xmlObjTemp.getAttributeNode("LocationId").nodeValue;
+				objBaseForm.Transitcountry.value   =xmlObjTemp.getAttributeNode("Name").nodeValue;
+				ClearErrorMsg(objBaseForm.formexception.value);
+			}  
+			
+			function resetInterCessorOrg(){   
+				//reset values, related to OriginPort.
+				var objBaseForm=document.forms["SAD"];            				
+				if(objBaseForm == null){					
+					objBaseForm=document.forms["DeclarationExportBill"]		
+				}
+				if(objBaseForm == null){					
+					objBaseForm=document.forms["TransitBillSAD"]		
+				}
+				objBaseForm.InterCessorName.value = "";
+				objBaseForm.InterCessorId.value="";
+			}                                               
+			function updateInterCessorOrg(xmlObjTemp){    
+				//update the values, related to OriginPort.
+				var objBaseForm=document.forms["SAD"];       
+				
+				if(objBaseForm == null){					
+					objBaseForm=document.forms["DeclarationExportBill"]		
+				}
+				if(objBaseForm == null){					
+					objBaseForm=document.forms["TransitBillSAD"]		
+				} 
+				objBaseForm.InterCessorId.value =xmlObjTemp.getAttributeNode("OrganizationId").nodeValue;
+				objBaseForm.InterCessorName.value   =xmlObjTemp.getAttributeNode("Name").nodeValue;
+				ClearErrorMsg(objBaseForm.formexception.value);
+			} 
+			
+function printOnCondition(sReportId,Action,Page,ConsigneeName,AgentId,CreatedBy,OwnerLocId,OwnerOrgId,AuditorId,refno,OtherRoles,BillType,sGWt,sHouseBillId,sDeliveryOrderId,Decdate)
+{
+	
+	
+    var refid = HtmlElementById('DeclarationId').value;    
+    var sStateId = MCgetAttribute('data/Declarationsrecords/Declarations[@DeclarationId="'+refid+'"]/@StateId');
+    var sCCPId = HtmlElementById('CustomsControlProcedureId').value; 
+    var strXml = '&lt;Declarationsrecords&gt;&lt;Declarations DeclarationId="' + refid + '" GWt="'+sGWt+'" HouseBillId="'+sHouseBillId+'" DeliveryOrderId="'+sDeliveryOrderId+'"  OtherRoles="'+OtherRoles+'" BillType="'+BillType+'" OwnerOrgId="'+OwnerOrgId+'" OwnerLocId="'+OwnerLocId+'" AuditorId="'+AuditorId+'" CreatedBy="'+CreatedBy+'" DeclarationNumber="' + refno + '"  DeclarationDate="' + Decdate + '"  ReportId="' + sReportId + '" StateId="'+sStateId+'" CustomsControlProcedureId="'+ sCCPId +'" /&gt; &lt;/Declarationsrecords&gt;';
+    //var strXml = '&lt;Declarationsrecords&gt;&lt;Declarations DeclarationId="' + refid + '" DeclarationNumber="' + refno + '" ReportId="' + sReportId + '" /&gt; &lt;/Declarationsrecords&gt;';
+    var MyReq = new SilentActionCall('PrintDeclaration','',fireOnCondition,strXml,'servicedocument','actionservice/exception');
+    MyReq.StartRequest();
+
+    MyReq = null;
+
+    function fireOnCondition(xmlRes)
+    {
+
+    if(xmlRes[0].getAttribute('code')=='')
+    {
+
+    _stopBlink(_alertMsgBlinkId,'AlertMsg');
+    _stopBlink(_conBlinkId,'ConsigneeDiffMsg2');
+    //_stopBlink(_priceAlertMsgBlinkid,'PriceAlertMessage');
+    if(sReportId == 'ViewSAD')
+    {
+    //printHiddenView('ViewSAD',ProfileField('Declarations.DeclarationId','text') + '=\''+refid+'\'','','true','','',[0,0,0,0]);
+    PgVar_Print=true;
+    printHiddenXsl('homepage1',HtmlElementById('DeclarationId').value);
+    }
+    else
+    {
+    if(Action == 'PrePrint' || Action == 'PrePrintByRange')
+    {
+    totalpages = xmlRes[0].getAttribute('BayanPageCount');//MCgetAttribute('data/Declarationsrecords/Declarations/@BayanPageCount',1);
+    total_times= xmlRes[0].getAttribute('NoBatches');//MCgetAttribute('data/Declarationsrecords/Declarations/@NoBatches',1);
+
+    TokenID = xmlRes[0].getAttribute('BayanPrintToken');
+    var sPageId = getParameter("pageid","");
+    var sActionCriteria = getParameter("actioncriteria","");
+    if (Action == 'PrePrint')
+    {
+    // by Gopinath Mani 04-Nov
+    var ownerLocId = MCgetAttribute('user/@LogInPortId','');
+
+    //if ( __PrintBayanByTokenPorts.indexOf(ownerLocId) > -1 &amp;&amp; ! IsRoleExist("PrintBayanOldTech")  )
+    if (IsThisPCwithNewBayanPrinting()) 
+    {
+    CallBayanPrintingNewTech(TokenID,0,0,0,0); // sending token id, page start and number of pages.
+    }
+    else
+    CustomsDeclarationReport_NextRequest(0);
+    }
+    else if (Action == 'PrePrintByRange') getPageRange();
+
+    //setParameterList(global_arrRegParameters, Array('','ListDeclarationsForCustomsControlProcedures',getParameter('previousactioncriteria',null),'','','ListDeclaration','0'));
+    //setParameterList(global_arrRegParameters, Array('',getParameter('actionid',null),getParameter('actioncriteria',null),'','',getParameter('pageid',null),'0'));
+    setParameterList(global_arrRegParameters, Array('','ListDeclarationsForCustomsControlProcedures',getParameter('actioncriteria',null),'','','ListDeclaration','0'));
+
+    }
+    
+/*
+    else
+    {
+    if(Action == 'PrePrint' || Action == 'PrePrintByRange')
+    {
+    totalpages = xmlRes[0].getAttribute('BayanPageCount');//MCgetAttribute('data/Declarationsrecords/Declarations/@BayanPageCount',1);
+    total_times= xmlRes[0].getAttribute('NoBatches');//MCgetAttribute('data/Declarationsrecords/Declarations/@NoBatches',1);
+    var sPageId = getParameter("pageid","");
+    var sActionCriteria = getParameter("actioncriteria","");
+    if (Action == 'PrePrint') CustomsDeclarationReport_NextRequest(0);
+    if (Action == 'PrePrintByRange') getPageRange();
+    //printHiddenView_p2('CustomsDeclaration Report',ProfileField('Declarations.DeclarationId','text') + '=\''+refid +'\'','','true','','','0.17,0.75,0.17,0.17','Fanfold 210 x 305 mm',1,'<Declarationsrecords><Declarations StartPage="1" EndPage="1"/></Declarationsrecords>') ;
+	  //setParameterList(global_arrRegParameters, Array('','ListDeclarationsForCustomsControlProcedures',getParameter('previousactioncriteria',null),'','','ListDeclaration','0'));
+	  //setParameterList(global_arrRegParameters, Array('',getParameter('actionid',null),getParameter('actioncriteria',null),'','',getParameter('pageid',null),'0'));
+	  setParameterList(global_arrRegParameters, Array('','ListDeclarationsForCustomsControlProcedures',getParameter('actioncriteria',null),'','','ListDeclaration','0'));
+	  }
+	  */
+
+	  /* if(Action == 'PrePrint')
+	  {
+
+	  var sPageId = getParameter("pageid","");
+	  var sActionCriteria = getParameter("actioncriteria","");
+	  if(sReportId == 'CustomsDeclaration Report_ARC')
+	  {
+	  printHiddenView_p2('CustomsDeclaration Report_ARC',ProfileField('Declarations.DeclarationId','text') + '=\''+refid +'\'','','true','','','0.17,0.75,0.17,0.17','Fanfold 210 x 305 mm') ;
+	  }
+	  else
+	  {
+	  printHiddenView_p2('CustomsDeclaration Report',ProfileField('Declarations.DeclarationId','text') + '=\''+refid +'\'','','true','','','0.17,0.75,0.17,0.17','Fanfold 210 x 305 mm') ;
+	  }
+
+	  //setParameterList(global_arrRegParameters, Array('','ListDeclarationsForCustomsControlProcedures',getParameter('previousactioncriteria',null),'','','ListDeclaration','0'));
+	  //setParameterList(global_arrRegParameters, Array('',getParameter('actionid',null),getParameter('actioncriteria',null),'','',getParameter('pageid',null),'0'));
+	  setParameter('previouspageid',getParameter('pageid',''));
+	  setParameterList(global_arrRegParameters, Array('','ListDeclarationsForCustomsControlProcedures',getParameter('actioncriteria',null),'','','ListDeclaration','0'));
+	  } */
+	  else if(Action == 'RePrint')
+	  {
+	  if(Page == 'ExportBillTaxesandDuties')
+	  {
+	  LockupScreen(Page,'RePrintReasonFrPg','RePrintDeclaration',ProfileField('RePrintReasonsTypes.TypeTypeId','text') + '=\'3B5BA7C477D14A389450D13C1484DCF9\'',500,150,false,false);
+	  }
+	  else if ( Page == 'TaxesandDuties')
+	  {
+	  LockupScreen(Page,'RePrintReasonFrPg','RePrintManifestLand',ProfileField('RePrintReasonsTypes.TypeTypeId','text') + '=\'3B5BA7C477D14A389450D13C1484DCF9\'',500,150,false,false);
+	  }
+	  else
+	  {
+	  LockupScreen(Page,'RePrintReasonFrPg','RePrintManifestLand',ProfileField('RePrintReasonsTypes.TypeTypeId','text') + '=\'3B5BA7C477D14A389450D13C1484DCF9\'',500,150,false,false);
+	  }
+	  }
+	  }
+	  }
+	  else
+	  {
+	  var sErrorCode = xmlRes[0].getAttribute('code');
+	  /*
+	  if(sErrorCode == 'DDC0109')
+	  {
+	  var sErrorMsg = msgDictionary('DDC0109');
+	  alert(sErrorMsg);
+	  }
+	  else if(sErrorCode == 'DDC0110')
+	  {
+	  var sErrorMsg = msgDictionary('DDC0110');
+	  alert(sErrorMsg);
+	  }
+	  else if(sErrorCode == 'RECDE01')
+	  {
+	  var sErrorMsg = msgDictionary('RECDE01');
+	  alert(sErrorMsg);
+	  }
+	  else if(sErrorCode == 'RECDE11')
+	  {
+	  var sErrorMsg = msgDictionary('RECDE11');
+	  alert(sErrorMsg);
+	  }
+	  else if(sErrorCode == 'RECDE02')
+	  {
+	  var sErrorMsg = msgDictionary('RECDE02');
+	  alert(sErrorMsg);
+	  }
+	  else if(sErrorCode == 'RECDE21')
+	  {
+	  var sErrorMsg = msgDictionary('RECDE21');
+	  alert(sErrorMsg);
+	  }
+	  else if(sErrorCode == 'RECDE07')
+	  {
+	  var sErrorMsg = msgDictionary('RECDE07');
+	  alert(sErrorMsg);
+	  }
+	  else if(sErrorCode == 'RECDE71')
+	  {
+	  var sErrorMsg = msgDictionary('RECDE71');
+	  alert(sErrorMsg);
+	  }
+	  */
+	  if(sErrorCode == 'RECDEER')
+	  {
+	  var sErrorMsg = msgDictionary('RECDEER');
+	  alert(sErrorMsg);
+	  }
+	  else if(sErrorCode == 'RECDE22')
+	  {
+	  var sErrorMsg = msgDictionary('RECDE22');
+	  alert(sErrorMsg);
+	  }
+	  else if(sErrorCode == 'RECDE23')
+	  {
+	  var sErrorMsg = msgDictionary('RECDE23');
+	  alert(sErrorMsg);
+	  }
+	  else if (sErrorCode == 'errInsNotPaid')
+	  {
+	  var sErrorMsg = msgDictionary('errInsNotPaid');
+	  alert(sErrorMsg);
+	  }
+
+	  else if(sErrorCode.indexOf('SFEENP')==0)
+	  {
+	  var sErrorMsg = msgDictionary(sErrorCode);
+	  alert(sErrorMsg);
+	  }
+	  else if (sErrorCode == 'errServicesNotPaid')
+	  {
+	  var sParams = xmlRes[0].getAttribute('context_value');
+	  var sErrorMsg = msgDictionary(sErrorCode).replace('@0',sParams);
+	  alert(sErrorMsg);
+	  }
+
+
+	  else
+	  {
+	  alert('PRINT DENIED');
+	  }
+	  }
+	  }
+	  }
+
+
+	  function CallBayanPrintingNewTech(TokenId, FPage, TPage,TtlPages) // by Gopinath Mani for new technique
+	  {
+	  var oShell = new ActiveXObject("Shell.Application");
+	  var arg = ' DeclarationReport '; //alert( TPage );
+	  // passing from and to page as zero as it is a full printing.
+
+	  arg += '"' + TokenId + '"' + ' ';
+	  arg += '"' + FPage + '"' + ' ';
+	  arg += '"' + TPage + '"' + ' ';
+	  arg += '"' + TtlPages + '"' + ' ';
+	  //alert('Calling the new bayan printing technique....'+ arg);
+	  oShell.ShellExecute(__BynPrnSmartClientAppPath, arg, "", "open", "1");
+	  setParameterList(global_arrRegParameters, Array('','ListDeclarationsForCustomsControlProcedures',getParameter('actioncriteria',null),'','','ListDeclaration','0'));
+	  pageSubmit(null,false);
+
+	  }
+
+
+
+	  function checkTransitBill()
+	  {
+	  var CCPID = MCgetAttribute('data/Declarationsrecords/Declarations/@CustomsControlProcedureId','');
+
+	  var flag = 'false';
+
+	  if(CCPID == global_CustomsControlProcedures.TRANSIT_BILL_FOR_AIRPORT)
+	  {
+	  flag = 'true';
+	  }
+	  else if(CCPID == global_CustomsControlProcedures.TRANSIT_BILL_FOR_SEAPORT)
+	  {
+	  flag = 'true';
+	  }
+	  else if(CCPID == global_CustomsControlProcedures.TRANSIT_BILL_FOR_LANDPORT)
+	  {
+	  flag = 'true';
+	  }
+	  return flag;
+
+
+	  }
+
+	  function checkBill()
+	  {
+
+	  var CCPID = MCgetAttribute('data/Declarationsrecords/Declarations/@CustomsControlProcedureId','');
+	  var flag = 'false';
+	  var IsMaqasa= HtmlElementById("IsMaqasa");
+
+	  if(CCPID == global_CustomsControlProcedures.RE_EXPORT_BILL_FOR_AIRPORT)
+	  {
+
+	  flag = 'true';
+	  }
+	  else if(CCPID == global_CustomsControlProcedures.RE_EXPORT_FOR_IMPORT_BILL_FOR_SEAPORT)
+	  {
+	  flag = 'true';
+	  }
+	  else if(CCPID == global_CustomsControlProcedures.RE_EXPORT_FOR_KFTZ)
+	  {
+	  flag = 'true';
+	  }
+	  else if(CCPID == global_CustomsControlProcedures.RE_EXPORT_FOR_IMPORT_BILL_FOR_LANDPORT)
+	  {
+	  flag = 'true';
+	  }
+	  else if(CCPID == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_AIRPORT)
+	  {
+	  flag = 'true';
+	  }
+	  else if(CCPID == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_SEAPORT)
+	  {
+	  flag = 'true';
+	  }
+	  else if(CCPID == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_LANDPORT)
+	  {
+	  flag = 'true';
+	  }
+	  if(HtmlElementById('IsMaqasa') != null)
+	  {
+	  if(IsMaqasa.checked &amp;&amp;(CCPID == global_CustomsControlProcedures.STATISTICAL_BILL_FOR_LAND || CCPID == global_CustomsControlProcedures.STATISTICAL_BILL_FOR_SEA || CCPID == global_CustomsControlProcedures.STATISTICAL_BILL_FOR_AIR))
+    {
+    flag = 'true';
+    }
+    }
+
+    return flag;
+    }
+
+    function DisableAddInv(bill)
+    {
+
+    var dodisable = 'false';
+    dodisable = decideDisabling(bill);
+
+    if(dodisable == 'true')
+    {
+    if(HtmlElementById('addinvoice') != null)
+    {
+    HtmlElementById('addinvoice').style.display = 'none';
+    }
+
+    if(HtmlElementById('nlblRefDec')!=null)
+    {
+    HtmlElementById('nlblRefDec').style.display = '';
+    }
+    if(HtmlElementById('associateinvoice') != null)
+    {
+    HtmlElementById('associateinvoice').style.display = 'none';
+    }
+    if(HtmlElementById('disassociate') != null)
+    {
+    HtmlElementById('disassociate').style.display = 'none';
+    }
+    if(HtmlElementById('assrefinv') != null)
+    {
+    if(bill == 'tmpimport')
+    HtmlElementById('assrefinv').style.display = 'none';
+    else
+
+    HtmlElementById('assrefinv').style.display = '';
+    if(HtmlElementById('disassociate') != null)
+    {
+    HtmlElementById('disassociate').style.display = '';
+    }
+    }
+    }
+    else
+    {
+    if(HtmlElementById('assrefinv') != null)
+    {
+    HtmlElementById('assrefinv').style.display = 'none';
+    }
+    if(HtmlElementById('nlblRefDec')!=null)
+    {
+    HtmlElementById('nlblRefDec').style.display = 'none';
+    }
+    }
+
+    var sTotalRecords = MCgetAttribute('data/Declarationsrecords/Declarations/CommercialInvoicesrecords/CommercialInvoices/CommercialInvoiceItemsrecords/@TotalRecordsFetched',null);
+    if(sTotalRecords &gt; 0)
+    {
+    if(HtmlElementById('GoodsDetectionItemsList')!=null) HtmlElementById('GoodsDetectionItemsList').style.display = '';
+    }
+    else
+    {
+    if(HtmlElementById('GoodsDetectionItemsList')!=null) HtmlElementById('GoodsDetectionItemsList').style.display = 'none';
+    }
+
+    }
+
+    function disableInvFields(bill)
+    {
+
+    var dodisable = 'false';
+    if(bill == 'reexport')
+    {
+
+    if( checkBill() == 'false' )
+    {
+
+    //return checkOrgingType();
+    var sRefInvId = MCgetAttribute("data/CommercialInvoicesrecords/CommercialInvoices/@RefInvId",null);
+    if(sRefInvId ==null || sRefInvId=='')
+    {
+    dodisable = 'false';
+    }
+    else
+    {
+    dodisable = 'true';
+    }
+    }
+    else
+    {
+
+    dodisable = 'true';
+    }
+    }
+    else
+    {
+    dodisable = decideDisabling(bill);
+    }
+
+
+    if(dodisable == 'true' )
+    {
+
+    if(HtmlElementById('RefDeclarationNumber') != null)
+    {
+
+    if( HtmlElementById('RefDeclarationNumber').value == '')
+    {
+
+
+    if(HtmlElementById('associateinvoiceitem') != null)
+    {
+    HtmlElementById('associateinvoiceitem').disabled = false;
+    }
+    if(HtmlElementById('orderno') != null)
+    {
+    HtmlElementById('orderno').disabled = true;
+    }
+    if(	HtmlElementById('invoicetype') != null)
+    {
+    HtmlElementById('invoicetype').disabled = true;
+    }
+    if( HtmlElementById('InvoiceAmount') != null)
+    {
+    HtmlElementById('InvoiceAmount').disabled = true;
+    }
+    if(HtmlElementById('freight') != null)
+    {
+    HtmlElementById('freight').disabled = true;
+    }
+    /*
+    if(HtmlElementById('SupplierName') != null)
+    {
+    HtmlElementById('SupplierName').disabled = true;
+    }
+    */
+    if(HtmlElementById('weight') != null)
+    {
+    HtmlElementById('weight').disabled = true;
+    }
+    if(HtmlElementById('Volume') != null)
+    {
+    HtmlElementById('Volume').disabled = true;
+    }
+    if(HtmlElementById('Gross1') != null)
+    {
+    HtmlElementById('Gross1').disabled = true;
+    }
+    if(HtmlElementById('orderdate') != null)
+    {
+    HtmlElementById('orderdate').disabled = true;
+    }
+    if(HtmlElementById('orderdatedatepicker') != null)
+    {
+    HtmlElementById('orderdatedatepicker').disabled = true;
+    }
+    if(HtmlElementById('insurance') != null)
+    {
+    HtmlElementById('insurance').disabled = true;
+    }
+    if(HtmlElementById('currency') != null)
+    {
+    HtmlElementById('currency').disabled = true;
+    }
+    if(HtmlElementById('currencybrowsebutton') != null)
+    {
+    HtmlElementById('currencybrowsebutton').disabled = true;
+    }
+    if( HtmlElementById('FreightCurrencyName') != null)
+    {
+    HtmlElementById('FreightCurrencyName').disabled = true;
+    }
+    if(HtmlElementById('freightcurrencybrowsebutton') != null)
+    {
+    HtmlElementById('freightcurrencybrowsebutton').disabled = true;
+    }
+    if(HtmlElementById('country') != null)
+    {
+    HtmlElementById('country').disabled = true;
+    }
+    if(HtmlElementById('countrybrowsebutton') != null)
+    {
+    HtmlElementById('countrybrowsebutton').disabled = true;
+    }
+    if(	HtmlElementById('WeightUnitOfMeasurement') != null)
+    {
+    HtmlElementById('WeightUnitOfMeasurement').disabled = true;
+    }
+    if(HtmlElementById('VolumeMeasurement') != null)
+    {
+    HtmlElementById('VolumeMeasurement').disabled = true;
+    }
+    if(HtmlElementById('remarks') != null)
+    {
+    HtmlElementById('remarks').disabled = true;
+    }
+    if(HtmlElementById('NewInvoiceItem') != null)
+    {
+    HtmlElementById('NewInvoiceItem').disabled = true;
+    }
+    }
+    }
+    }
+    }
+
+
+
+
+
+    function disableItemCtrlsForReExport(bill)
+    {
+    var dodisable = 'false';
+    if(bill == 'reexport')
+    {
+    if(checkBill()=='false')
+    {
+    //return checkOrgingType();
+    var sRefItemId = MCgetAttribute("data/CommercialInvoiceItemsrecords/CommercialInvoiceItems/@RefItemId",null);
+    if(sRefItemId ==null || sRefItemId=='')
+    {
+    dodisable = 'false';
+    }
+    else
+    {
+    dodisable = 'true';
+    }
+    }
+    else
+    {
+    dodisable = 'true';
+    }
+    }
+    else
+    {
+    dodisable = decideDisabling(bill);
+    }
+
+    if(dodisable == 'true')
+    {
+    if(HtmlElementById('RefDeclarationNumber') != null)
+    {
+
+    if( HtmlElementById('RefDeclarationNumber').value == '')
+    {
+
+    var sStateId = MCgetAttribute("data/CommercialInvoiceItemsrecords/HSCodeForDeclarationrecords/HSCodeForDeclaration/@StateId",null);
+    var sRefItemId = MCgetAttribute("data/CommercialInvoiceItemsrecords/CommercialInvoiceItems/@RefItemId",null);
+
+    var sRefCItemId='';
+    var strXml = xmlServiceDocument.selectSingleNode(rootNodeName + "/" + dataNodeName + "/CommercialInvoiceItemsrecords");
+    strXml = OuterXML(strXml)
+    var myReq = new SilentActionCall('CheckReferenceCommercialInvoiceItemsStatus','',fireOnConditionIfExists,strXml,'servicedocument','actionservice/exception');
+    myReq.StartRequest();
+    myReq = null;
+    function fireOnConditionIfExists(xmlRes)
+    {
+    if(xmlRes[0].getAttribute('code') != '')
+    sRefCItemId = '1';
+    else
+    sRefCItemId = '0';
+    }
+
+    if (sRefItemId!=null &amp;&amp; sRefItemId !='')
+				{
+					if (sStateId!=null &amp;&amp; sStateId !='')
+					{
+						if((sStateId == 'TariffItemsCreatedState' || sStateId == 'TariffItemsModifiedState')&amp;&amp; sRefCItemId == '0')
+    {
+    if(HtmlElementById('hscode') != null)HtmlElementById('hscode').disabled = true;
+    if(HtmlElementById('hscodebrowsebutton') != null)HtmlElementById('hscodebrowsebutton').disabled = true;
+    if(HtmlElementById('TempExpCode') != null)HtmlElementById('TempExpCode').disabled = true;
+    if(HtmlElementById('description') != null)HtmlElementById('description').disabled = true;
+    if(HtmlElementById('country') != null)HtmlElementById('country').disabled = true;
+    if(HtmlElementById('countrybrowsebutton') != null)HtmlElementById('countrybrowsebutton').disabled = true;
+    if(HtmlElementById('HSCodeDescription') != null)HtmlElementById('HSCodeDescription').disabled = true;
+    if(HtmlElementById('totalprice') != null)HtmlElementById('totalprice').disabled = true;
+    if(HtmlElementById('unitprice') != null)HtmlElementById('unitprice').disabled = true;
+    if(HtmlElementById('txtpackagetype') != null)HtmlElementById('txtpackagetype').disabled = true;
+    if(HtmlElementById('btnPackageType') != null)HtmlElementById('btnPackageType').disabled = true;
+    if(HtmlElementById('IsRestricted') != null)HtmlElementById('IsRestricted').disabled = true;
+    //if(HtmlElementById('RestrictionRelRef') != null)HtmlElementById('RestrictionRelRef').disabled = true;
+    if(HtmlElementById('volume') != null)HtmlElementById('volume').disabled = true;
+    if(HtmlElementById('txtRestrictionName') != null)HtmlElementById('txtRestrictionName').disabled = true;
+    if(HtmlElementById('btnRestrictionType') != null)HtmlElementById('btnRestrictionType').disabled = true;
+    if(HtmlElementById('txtRestrictionId') != null)HtmlElementById('txtRestrictionId').disabled = true;
+    if(HtmlElementById('noofpackages') != null)	HtmlElementById('noofpackages').disabled = true;
+    if(HtmlElementById('weight') != null)		HtmlElementById('weight').disabled = true;
+    if(HtmlElementById('Gross1') != null)		HtmlElementById('Gross1').disabled = true;
+    if(HtmlElementById('quantity') != null)		HtmlElementById('quantity').disabled = true;
+    if(HtmlElementById('Manufacturer') != null)		HtmlElementById('Manufacturer').disabled = true;
+    if(HtmlElementById('cmdConvert') != null)	HtmlElementById('cmdConvert').disabled = true;
+    }
+    else
+    {
+    if(HtmlElementById('hscode') != null)HtmlElementById('hscode').disabled = false;
+    if(HtmlElementById('hscodebrowsebutton') != null)HtmlElementById('hscodebrowsebutton').disabled = false;
+    if(HtmlElementById ("browsebutton")!=null)HtmlElementById ("browsebutton").disabled=false;
+    if(HtmlElementById('TempExpCode') != null)HtmlElementById('TempExpCode').disabled = true;
+    if(HtmlElementById('description') != null)HtmlElementById('description').disabled = true;
+    if(HtmlElementById('country') != null)HtmlElementById('country').disabled = true;
+    if(HtmlElementById('countrybrowsebutton') != null)HtmlElementById('countrybrowsebutton').disabled = true;
+    if(HtmlElementById('HSCodeDescription') != null)HtmlElementById('HSCodeDescription').disabled = true;
+    if(HtmlElementById('totalprice') != null)HtmlElementById('totalprice').disabled = true;
+    if(HtmlElementById('unitprice') != null)HtmlElementById('unitprice').disabled = true;
+    if(HtmlElementById('txtpackagetype') != null)HtmlElementById('txtpackagetype').disabled = true;
+    if(HtmlElementById('btnPackageType') != null)HtmlElementById('btnPackageType').disabled = true;
+    if(HtmlElementById('IsRestricted') != null)HtmlElementById('IsRestricted').disabled = true;
+    if(HtmlElementById('volume') != null)HtmlElementById('volume').disabled = true;
+    if(HtmlElementById('txtRestrictionName') != null)HtmlElementById('txtRestrictionName').disabled = true;
+    if(HtmlElementById('btnRestrictionType') != null)HtmlElementById('btnRestrictionType').disabled = true;
+    if(HtmlElementById('txtRestrictionId') != null)HtmlElementById('txtRestrictionId').disabled = true;
+    if(HtmlElementById('noofpackages') != null)	HtmlElementById('noofpackages').disabled = true;
+    if(HtmlElementById('weight') != null)HtmlElementById('weight').disabled = true;
+    if(HtmlElementById('Gross1') != null)HtmlElementById('Gross1').disabled = true;
+    if(HtmlElementById('quantity') != null)	HtmlElementById('quantity').disabled = true;
+    if(HtmlElementById('Manufacturer') != null)	HtmlElementById('Manufacturer').disabled = true;
+    if(HtmlElementById('oldunitprice') != null)	HtmlElementById('oldunitprice').disabled = true;
+    if(HtmlElementById('cmdConvert') != null)	HtmlElementById('cmdConvert').disabled = true;
+    if(HtmlElementById('IsExempted') != null)	HtmlElementById('IsExempted').disabled = true;
+    if(HtmlElementById('volume') != null)	HtmlElementById('volume').disabled = true;
+    if(HtmlElementById('OtherReleases') != null)	HtmlElementById('OtherReleases').disabled = true;
+    if(HtmlElementById('ExemptionDetails') != null)	HtmlElementById('ExemptionDetails').disabled = true;
+    //if(HtmlElementById('IsRestricted').checked == true)
+    //	if(HtmlElementById('RestrictionRelRef') != null)	HtmlElementById('RestrictionRelRef').disabled = false;
+    //else
+    if(HtmlElementById('RestrictionRelRef') != null)
+    HtmlElementById('RestrictionRelRef').disabled = true;
+    }
+    }
+    }
+    /*
+    if(HtmlElementById('hscode') != null)HtmlElementById('hscode').disabled = true;
+    if(HtmlElementById('hscodebrowsebutton') != null)HtmlElementById('hscodebrowsebutton').disabled = true;
+    if(HtmlElementById('TempExpCode') != null)HtmlElementById('TempExpCode').disabled = true;
+    if(HtmlElementById('description') != null)HtmlElementById('description').disabled = true;
+    if(HtmlElementById('country') != null)HtmlElementById('country').disabled = true;
+    if(HtmlElementById('countrybrowsebutton') != null)HtmlElementById('countrybrowsebutton').disabled = true;
+    if(HtmlElementById('HSCodeDescription') != null)HtmlElementById('HSCodeDescription').disabled = true;
+    if(HtmlElementById('totalprice') != null)HtmlElementById('totalprice').disabled = true;
+    if(HtmlElementById('unitprice') != null)HtmlElementById('unitprice').disabled = true;
+    if(HtmlElementById('txtpackagetype') != null)HtmlElementById('txtpackagetype').disabled = true;
+    if(HtmlElementById('btnPackageType') != null)HtmlElementById('btnPackageType').disabled = true;
+    if(HtmlElementById('IsRestricted') != null)HtmlElementById('IsRestricted').disabled = true;
+    //if(HtmlElementById('RestrictionRelRef') != null)HtmlElementById('RestrictionRelRef').disabled = true;
+    if(HtmlElementById('volume') != null)HtmlElementById('volume').disabled = true;
+    if(HtmlElementById('txtRestrictionName') != null)HtmlElementById('txtRestrictionName').disabled = true;
+    if(HtmlElementById('btnRestrictionType') != null)HtmlElementById('btnRestrictionType').disabled = true;
+    if(HtmlElementById('txtRestrictionId') != null)HtmlElementById('txtRestrictionId').disabled = true;
+    if(HtmlElementById('noofpackages') != null)	HtmlElementById('noofpackages').disabled = true;
+    if(HtmlElementById('weight') != null)		HtmlElementById('weight').disabled = true;
+    if(HtmlElementById('Gross1') != null)		HtmlElementById('Gross1').disabled = true;
+    if(HtmlElementById('quantity') != null)		HtmlElementById('quantity').disabled = true;*/
+    }
+    }
+    }
+    }
+    function checkRefDecId()
+    {
+    var sRefDecId =  MCgetAttribute('data/Declarationsrecords/Declarations/@RefDeclarationId','');
+    if(sRefDecId != '')
+    {
+    return 'true';
+    }
+    else return 'false';
+    }
+
+    function decideDisabling(bill)
+    {
+    if(bill == 'reexport')
+    {
+    //return checkBill();
+    if(checkBill()=='false')
+    {
+    return checkOrgingType();
+    }
+    else
+    {
+    return 'true';
+    }
+    }
+    else if(bill == 'tmpimport')
+    {
+    return checkRefDecId();
+    }
+    }
+    function DisableClearingAgent()
+    {
+    var OrgType=MCgetAttribute('user/@OrganizationType','null');
+    if(OrgType == 'Clearing Agents')
+    {
+    if(HtmlElementById("browsebuttonConsignee")!=null)
+    HtmlElementById("browsebuttonConsignee").disabled=true;
+    }
+    }
+
+
+    function setTmpResCode(codes,ResCodes,frmObj)
+    {
+
+    <!--var sActionPageId = MCgetAttribute('actionservice/actioncontrol/@actionpageid','');-->
+    //var frmObj = document.forms['itemdetails'];
+    //bBlockRestrictionProhibition = 'false';
+    if((codes != '') &amp;&amp; (bBlockRestrictionProhibition != 'true'))
+    {
+    //added by krao for OGD Process
+    <!--if(GBL_Types.OGDPROCESS_TYPE.VALUE == 'TRUE'  &amp;&amp; (sActionPageId=='CommercialInvoiceItem' || sActionPageId== 'ExportBillCommercialInvoiceItem'))
+    {
+    HtmlElementById('RestrictionRelRef').readOnly=true;
+    HtmlElementById('RelRef').style.display = '';
+    }-->
+
+    HtmlElementById('btnOrgCode').style.display ='';
+    HtmlElementById('btnOrgCode').value = codes;
+    HtmlElementById('txtRestrictionName').value = codes;
+    HtmlElementById('txtRestrictionId').value = codes;
+
+    if(ResCodes != '')
+    {
+
+    HtmlElementById("RestrictionRelRef").disabled = false;
+    //MakeFieldRequired(frmObj,"RestrictionRelRef",HtmlElementById("cellRestrictionRelRef"));
+    if(ResCodes.indexOf("P") != -1)
+    {
+
+
+    HtmlElementById('IsRestricted').checked = false;
+    HtmlElementById('IsRestricted').value = 0;
+
+    HtmlElementById('btnOrgCode').className = 'resprobutton-pro';
+    //Open Restriction detail PopUp by default for Restricted item
+    var TariffItemId = HtmlElementById('TariffItemId').value;
+    LockupScreen('itemdetails','ViewTariffItemPopUp','ViewItem',ProfileField('TariffItems.TariffItemId')+'=\''+TariffItemId+'\'',700,500,true,false);
+    }
+    else
+    {
+
+
+    //MakeFieldOptional(frmObj,"RestrictionRelRef",HtmlElementById("cellRestrictionRelRef"));
+    HtmlElementById('btnOrgCode').className = 'resprobutton-res';
+    HtmlElementById('IsRestricted').checked = true;
+    HtmlElementById('IsRestricted').value = 1;
+    //Open Restriction detail PopUp by default for Restricted item
+    //added by krao for OGD Process
+    if(GBL_Types.OGDPROCESS_TYPE.VALUE == 'TRUE')
+    {
+    if(HtmlElementById('RestrictionRelRef')!=null) HtmlElementById('RestrictionRelRef').disabled=true;
+    if(HtmlElementById('RelRef')!=null)HtmlElementById('RelRef').style.display = '';
+    MakeFieldOptional(frmObj,"RestrictionRelRef",HtmlElementById("cellRestrictionRelRef"));
+
+    }
+    else
+    {
+    if(HtmlElementById('RelRef')!=null) HtmlElementById('RelRef').style.display = 'none';
+    if(HtmlElementById('RestrictionRelRef')!=null) HtmlElementById('RestrictionRelRef').disabled=false;
+    MakeFieldRequired(frmObj,"RestrictionRelRef",HtmlElementById("cellRestrictionRelRef"));
+    }
+
+    var TariffItemId = HtmlElementById('TariffItemId').value;
+    LockupScreen('itemdetails','ViewTariffItemPopUp','ViewItem',ProfileField('TariffItems.TariffItemId')+'=\''+TariffItemId+'\'',700,500,true,false);
+    }
+    if(	ResCodes.indexOf("P") != -1 &amp;&amp; ResCodes.indexOf("R") != -1)
+    {
+
+
+    HtmlElementById('IsRestricted').checked = true;
+    HtmlElementById('IsRestricted').value = 1;
+    //Open Restriction detail PopUp by default for Restricted item
+    if(GBL_Types.OGDPROCESS_TYPE.VALUE == 'TRUE')
+    {
+    if(HtmlElementById('RestrictionRelRef')!=null) HtmlElementById('RestrictionRelRef').disabled=true;              if(HtmlElementById('RelRef')!=null)HtmlElementById('RelRef').style.display = '';
+    MakeFieldOptional(frmObj,"RestrictionRelRef",HtmlElementById("cellRestrictionRelRef"));
+
+    }
+    else
+    {
+    if(HtmlElementById('RelRef')!=null) HtmlElementById('RelRef').style.display = 'none';
+    if(HtmlElementById('RestrictionRelRef')!=null) HtmlElementById('RestrictionRelRef').disabled=false;
+    MakeFieldRequired(frmObj,"RestrictionRelRef",HtmlElementById("cellRestrictionRelRef"));
+    }
+
+    var TariffItemId = HtmlElementById('TariffItemId').value;
+    LockupScreen('itemdetails','ViewTariffItemPopUp','ViewItem',ProfileField('TariffItems.TariffItemId')+'=\''+TariffItemId+'\'',700,500,true,false);
+    }
+    }
+    }
+    else
+    {
+
+    HtmlElementById('IsRestricted').checked = false;
+    HtmlElementById('IsRestricted').value = 0;
+    HtmlElementById('btnOrgCode').style.display = 'none';
+    HtmlElementById('txtRestrictionName').value = '';
+    HtmlElementById('txtRestrictionId').value='' ;
+    HtmlElementById('txtRestrictionName').disabled=true;
+    if (HtmlElementById('btnRestrictionType') != null)
+    HtmlElementById('btnRestrictionType').disabled=true;
+    HtmlElementById('RestrictionRelRef').disabled=true;
+    HtmlElementById('RestrictionRelRef').value='';
+    MakeFieldOptional(frmObj,"RestrictionRelRef",HtmlElementById("cellRestrictionRelRef"));
+    MakeFieldOptional(frmObj,"txtRestrictionName",HtmlElementById("cellRestrictionType"));
+
+    //added by krao for ogd process
+    HtmlElementById('btnOrgCode').value='';
+    <!--if(GBL_Types.OGDPROCESS_TYPE.VALUE == 'TRUE' &amp;&amp; (sActionPageId=='CommercialInvoiceItem' || sActionPageId== 'ExportBillCommercialInvoiceItem'))
+    {
+    HtmlElementById('RestrictionRelRef').style.display ='';
+    HtmlElementById('RelRef').style.display = 'none';
+    }-->
+    if(GBL_Types.OGDPROCESS_TYPE.VALUE == 'TRUE' &amp;&amp; HtmlElementById('IsRestricted').value == 1)
+    {
+    if(HtmlElementById('RestrictionRelRef')!=null) HtmlElementById('RestrictionRelRef').disabled=true;
+    }
+
+    //ENDS
+
+    }
+    }
+
+    function HideOrgCode()
+    {
+    var codes = '';
+    var BillType  =  MCgetAttribute('data/Declarationsrecords/Declarations/@BillType','');
+    var sCCPId = MCgetAttribute('data/Declarationsrecords/Declarations/@CustomsControlProcedureId', '');
+    if ( BillType == global_BillType.Import || BillType == global_BillType.Transit)
+    {
+    codes = MCgetAttribute('data/CommercialInvoiceItemsrecords/HSCodeForDeclarationrecords/HSCodeForDeclaration/@TempImpCode','');
+    if((codes != '') &amp;&amp; (bBlockRestrictionProhibition != 'true'))
+    {
+    if(HtmlElementById('CCPId')!=null)
+    {
+    if(HtmlElementById('CCPId').value == global_CustomsControlProcedures.CONSIGNMENT_TRACKING_FORM_FOR_LANDPORT)
+    {
+    if (HtmlElementById('btnOrgCode') != null) HtmlElementById('btnOrgCode').style.display = 'none';
+    if (HtmlElementById('RelRef') != null) HtmlElementById('RelRef').disabled = true;
+    return false;
+    }
+    else
+    {
+
+    HtmlElementById('btnOrgCode').style.display = '';
+    HtmlElementById('btnOrgCode').value = codes;
+    if(GBL_Types.OGDPROCESS_TYPE.VALUE == 'TRUE')
+    {
+    if(HtmlElementById('RestrictionRelRef')!=null) HtmlElementById('RestrictionRelRef').disabled=true;
+    if(HtmlElementById('RelRef')!=null) HtmlElementById('RelRef').style.display='';
+    }
+    }
+
+    }
+    else
+    {
+    if(HtmlElementById('RestrictionRelRef')!=null) HtmlElementById('RestrictionRelRef').disabled=false;
+    if(HtmlElementById('RelRef')!=null) HtmlElementById('RelRef').style.display='none';
+
+    }
+
+    }
+    else
+    {
+    HtmlElementById('btnOrgCode').style.display = 'none';
+    //if(HtmlElementById('RelRef')!=null) HtmlElementById('RelRef').style.display='none';
+    if(GBL_Types.OGDPROCESS_TYPE.VALUE == 'TRUE' &amp;&amp; HtmlElementById('IsRestricted').value == 1)
+    {
+    if(HtmlElementById('RestrictionRelRef')!=null) HtmlElementById('RestrictionRelRef').disabled=true;
+    }
+
+    }
+    }
+    else if( BillType == global_BillType.Export )
+    {
+    codes = MCgetAttribute('data/CommercialInvoiceItemsrecords/HSCodeForDeclarationrecords/HSCodeForDeclaration/@TempExpCode','');
+    if((codes != '') &amp;&amp; (bBlockRestrictionProhibition != 'true'))
+    {
+    var isBWHFlag = 0;
+    var strXml = '&lt;Declarationsrecords DeclarationId="' + HtmlElementById('DeclarationId').value + '"&gt;&lt;/Declarationsrecords&gt;';
+    var MyReq = new SilentActionCall('CheckBWHExportBayan', '', fireOnCondition, strXml, 'servicedocument', 'actionservice/exception');
+    MyReq.StartRequest();
+    MyReq = null;
+    function fireOnCondition(xmlRes)
+    {
+    var sErrorCode = xmlRes[0].getAttribute('code');
+    if (sErrorCode == 'BWHExp001')
+    {
+    isBWHFlag = 1;
+    }
+    }
+    if (isBWHFlag == 1)
+    {
+    if (HtmlElementById('btnOrgCode') != null) HtmlElementById('btnOrgCode').style.display = 'none';
+    if (HtmlElementById('RelRef') != null) HtmlElementById('RelRef').disabled = true;
+    return false;
+    }
+
+    if(sCCPId == GBL_CustomsControlProcedures.FREEZONE.EXPORT_BILL.EXPORTFREEZONE)
+    {
+    if (HtmlElementById('btnOrgCode') != null) HtmlElementById('btnOrgCode').style.display = 'none';
+    if (HtmlElementById('RelRef') != null) HtmlElementById('RelRef').disabled = true;
+    return false;
+    }
+
+    HtmlElementById('btnOrgCode').style.display = '';
+    HtmlElementById('btnOrgCode').value = codes;
+    if(GBL_Types.OGDPROCESS_TYPE.VALUE == 'TRUE')
+    {
+    if(HtmlElementById('RestrictionRelRef')!=null) HtmlElementById('RestrictionRelRef').disabled=true;
+    if(HtmlElementById('RelRef')!=null) HtmlElementById('RelRef').style.display='';
+    }
+    else
+    {
+    if(HtmlElementById('RestrictionRelRef')!=null) HtmlElementById('RestrictionRelRef').disabled=false;
+    if(HtmlElementById('RelRef')!=null) HtmlElementById('RelRef').style.display='none';
+
+    }
+
+    }
+    else
+    {
+    HtmlElementById('btnOrgCode').style.display = 'none';
+    //if(HtmlElementById('RelRef')!=null) HtmlElementById('RelRef').style.display='none';
+    if(GBL_Types.OGDPROCESS_TYPE.VALUE == 'TRUE' &amp;&amp; HtmlElementById('IsRestricted').value == 1)
+    {
+    if(HtmlElementById('RestrictionRelRef')!=null) HtmlElementById('RestrictionRelRef').disabled=true;
+    }
+
+    }
+    }
+    }
+
+    function HideOrgCode_old()
+    {
+    //var frmObj = document.forms['itemdetails'];
+    if(HtmlElementById('btnRestrictionType') != '')
+    {
+    HtmlElementById('btnRestrictionType').style.display = 'none';
+    }
+
+    var codes = '';
+    var BillType  =  MCgetAttribute('data/Declarationsrecords/Declarations/@BillType','');
+    if ( BillType == global_BillType.Import || BillType == global_BillType.Transit)
+    {
+    codes = MCgetAttribute('data/CommercialInvoiceItemsrecords/HSCodeForDeclarationrecords/HSCodeForDeclaration/@TempImpCode','');
+    if((codes != '') &amp;&amp; (bBlockRestrictionProhibition != 'true'))
+		{
+			HtmlElementById('btnOrgCode').style.display = '';		
+			HtmlElementById('btnOrgCode').value = codes;
+			HtmlElementById('txtRestrictionName').value = codes;
+		}
+		else
+		{			
+			HtmlElementById('btnOrgCode').style.display = 'none';		
+			HtmlElementById('txtRestrictionName').value = '';
+		}
+	}
+	else if( BillType == global_BillType.Export )     	
+	{
+		
+		codes = MCgetAttribute('data/CommercialInvoiceItemsrecords/HSCodeForDeclarationrecords/HSCodeForDeclaration/@TempExpCode','');
+		
+		if((codes != '') &amp;&amp; (bBlockRestrictionProhibition != 'true'))
+    {
+
+    HtmlElementById('btnOrgCode').style.display = '';
+    HtmlElementById('btnOrgCode').value = codes;
+    HtmlElementById('txtRestrictionName').value = codes;
+    }
+    else
+    {
+    //HtmlElementById('txtRestrictionName').value = '';
+    HtmlElementById('btnOrgCode').style.display = 'none';
+    }
+
+    }
+
+
+    }
+    function OrginTypeReferenceDecl()
+    {
+      var BillType  =  MCgetAttribute('data/Declarationsrecords/Declarations/@BillType','');
+      if(BillType ==global_BillType.Import || BillType ==global_BillType.Export)
+      {
+        if(HtmlElementById('GoodsDetectionItemsList')!=null) HtmlElementById('GoodsDetectionItemsList').style.display = '';
+      }
+      else
+      {
+        if(HtmlElementById('GoodsDetectionItemsList')!=null) HtmlElementById('GoodsDetectionItemsList').style.display = 'none';
+      }
+
+    var sOrgingType ='';
+    if(HtmlElementById("orgintype")!=null)
+    sOrgingType = HtmlElementById("orgintype").value;
+    if(sOrgingType==null || sOrgingType=='')
+    sOrgingType = MCgetAttribute('data/Declarationsrecords/Declarations/@OrginTypeId','');
+    var ORGING_TYPE_NOT_KUWAIT = global_OrginType.NotKuwait;
+
+    //Set Kuwait as Country of Origin
+    var pageid = getParameter('pageid');
+    if(pageid == 'ExportBillCommercialInvoiceItem'	&amp;&amp; sOrgingType == global_OrginType.Fixed)
+	{
+		if(HtmlElementById('country').value=='')
+			HtmlElementById('country').value = msgDictionary('Kuwait');
+		if(HtmlElementById('CountryOfOrigin').value=='')
+			HtmlElementById('CountryOfOrigin').value = global_Locations.KW;
+	}
+	if(sOrgingType!=null &amp;&amp; sOrgingType!='')
+    {
+
+    if (ORGING_TYPE_NOT_KUWAIT == sOrgingType  )  // Not Kuwait...Enable Refere Declaration
+    {
+
+    if(HtmlElementById('rowOldOwner')!=null)
+    HtmlElementById('rowOldOwner').style.display = '';
+
+    if(HtmlElementById('nlblRefDec')!=null)
+    HtmlElementById('nlblRefDec').style.display = '';
+    if(HtmlElementById('assrefinv')!=null)
+    HtmlElementById('assrefinv').style.display = '';
+    if(HtmlElementById('addinvoice')!=null)
+    HtmlElementById('addinvoice').style.display = '';
+    if(HtmlElementById('associateinvoice')!=null)
+    HtmlElementById('associateinvoice').style.display = 'none';
+
+    for (var i=0;;i++)
+    {
+    var currRowElement=HtmlElementById ('List_ExportBillCommercialInvoice_'+i+'_addItemCheck');
+    if (currRowElement!=null)
+    {
+    currRowElement.disabled=true;
+    }
+    else break;
+    }
+    }
+    else // Not Not Kuwait...Enable Refere Declaration false
+    {
+    if(HtmlElementById('rowOldOwner')!=null)
+    HtmlElementById('rowOldOwner').style.display = 'none';
+    var IsMaqasa= HtmlElementById("IsMaqasa");
+    var CCPId = MCgetAttribute('data/Declarationsrecords/Declarations/@CustomsControlProcedureId',null);
+    if(HtmlElementById('IsMaqasa') != null &amp;&amp; IsMaqasa.checked)
+    {
+    if (IsMaqasa.checked &amp;&amp;( CCPId == global_CustomsControlProcedures.STATISTICAL_BILL_FOR_LAND || CCPId == global_CustomsControlProcedures.STATISTICAL_BILL_FOR_SEA || CCPId == global_CustomsControlProcedures.STATISTICAL_BILL_FOR_AIR))
+		{
+		if(HtmlElementById('nlblRefDec')!=null)
+		HtmlElementById('nlblRefDec').style.display = '';
+		if(HtmlElementById('assrefinv')!=null)
+		HtmlElementById('assrefinv').style.display = '';
+		if(HtmlElementById('addinvoice')!=null)
+		HtmlElementById('addinvoice').style.display = 'none';
+		if(HtmlElementById('associateinvoice')!=null)
+		HtmlElementById('associateinvoice').style.display = 'none';
+
+		for (var i=0;;i++)
+		{
+		var currRowElement=HtmlElementById ('List_ExportBillCommercialInvoice_'+i+'_addItemCheck');
+		if (currRowElement!=null)
+		{
+		currRowElement.disabled=true;
+		}
+		else break;
+		}
+		}
+	}	
+    else
+    {
+
+    if(HtmlElementById('nlblRefDec')!=null)
+    HtmlElementById('nlblRefDec').style.display = 'none';
+    if(HtmlElementById('assrefinv')!=null)
+    HtmlElementById('assrefinv').style.display = 'none';
+    if(HtmlElementById('addinvoice')!=null)
+    HtmlElementById('addinvoice').style.display = '';
+    if(HtmlElementById('associateinvoice')!=null)
+    HtmlElementById('associateinvoice').style.display = '';
+
+    for (var i=0;;i++)
+    {
+    var currRowElement=HtmlElementById ('List_ExportBillCommercialInvoice_'+i+'_addItemCheck');
+    if (currRowElement!=null)
+    {
+    currRowElement.disabled=false;
+    }
+    else break;
+    }
+    }
+    }
+    }
+    }
+    function checkOrgingType()
+    {
+    var sOrgingType ='';
+    if(HtmlElementById("orgintype")!=null)
+    sOrgingType = HtmlElementById("orgintype").value;
+    if(sOrgingType==null || sOrgingType=='')
+    sOrgingType = MCgetAttribute('data/Declarationsrecords/Declarations/@OrginTypeId','');
+    var ORGING_TYPE_NOT_KUWAIT = global_OrginType.NotKuwait;
+    var IsMaqasa= HtmlElementById("IsMaqasa");
+    var CCPId = MCgetAttribute('data/Declarationsrecords/Declarations/@CustomsControlProcedureId',null);
+
+
+    if (sOrgingType == ORGING_TYPE_NOT_KUWAIT)  // Not Kuwait...Enable Refere Declaration
+    {
+    return 'true';
+    }
+
+	else if(HtmlElementById('IsMaqasa') != null)
+	{
+		if (IsMaqasa.checked &amp;&amp;(CCPId == global_CustomsControlProcedures.STATISTICAL_BILL_FOR_LAND || CCPId == global_CustomsControlProcedures.STATISTICAL_BILL_FOR_SEA || CCPId == global_CustomsControlProcedures.STATISTICAL_BILL_FOR_AIR))
+    {
+    return 'true';
+    }
+    }
+
+    else
+    {
+    return 'false';
+    }
+    }
+    function callDeclDocsPopUp()
+    {
+    var sCCPId = MCgetAttribute('data/Declarationsrecords/Declarations/@CustomsControlProcedureId',null);
+    var sDeclarationId = MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null);
+    var sStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId',null);
+    var iCutOfDate = global_PNCutOfDate_DeclDocuments; //Validation For CutOfDate and Getting From Project_Const.js
+    
+    
+    var todayDate = MCgetAttribute('data/Declarationsrecords/Declarations/@DecDateCreated','');
+    if(todayDate!=null &amp;&amp; todayDate!='')
+    {
+    todayDate=todayDate.split('T')[0];
+    todayDate=todayDate.split('-')[2]+'-'+todayDate.split('-')[1]+'-'+todayDate.split('-')[0];
+    }
+
+    var sMaqasa = MCgetAttribute('data/Declarationsrecords/Declarations/@Maqasa',null);
+
+   
+
+    if (sDeclarationId !='')
+    {
+    if( (todayDate != '' &amp;&amp; todayDate !=null) &amp;&amp; (bCompareDate(todayDate ,'&gt;=',iCutOfDate)))
+    {
+    if( ( IsRoleExist("ClearingAgent") || IsRoleExist("BWHClearingAgent")) &amp;&amp; (sStateId =='DutyCalculatedState' || sStateId =='DeclarationCreatedState' || sStateId =='DeclarationRejected' || sStateId =='DeclarationModifiedState' ||sStateId =='SubToAuditor' ))
+    {
+    LockupScreen('','ListCCPDocumentsPopUpPg','OpenDeclarationRequiredDocuments',sCCPId +'~'+ sDeclarationId +'~'+ sStateId+'~'+ sMaqasa,950,650,true,false);
+    return false;
+    }
+    else
+    {
+    LockupScreen('','ViewCCPDocumentsPopUpPg','OpenDeclarationRequiredDocuments',sCCPId +'~'+ sDeclarationId +'~'+ sStateId+'~'+ sMaqasa,950,650,true,false);
+    return false;
+    }
+    }
+    else
+    {
+
+    LockupScreen('','ListCCPDocumentsPopUp','OpenDeclarationDocuments',sCCPId +'~'+ sDeclarationId +'~'+ sStateId,950,650,true,false);
+    return false;
+    }
+    }
+    }
+
+    function fnBaseSubmitFromDeclDocs(frm)
+    {
+
+    var sDeclarationId = MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null);
+    var actioncriteria = ProfileField('Declarations.DeclarationId','text') + '=\''+sDeclarationId+'\'';
+    var BillType  =  MCgetAttribute('data/Declarationsrecords/Declarations/@BillType','');
+
+
+
+
+    var sPageId=''
+    var sDeclStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId',null);
+
+
+    if(frm.id =="ApproveDeclarationByMinistryFr" || frm.id =="FeedBankDeclarationByMisFr")
+    {
+    if(BillType ==  global_BillType.Export)
+    setParameterList(global_arrRegParameters, Array('','','','OpenDeclarationExportBill',actioncriteria,'ViewDeclarationOGDExportBill',''));
+    else if(BillType ==  global_BillType.Import)
+    setParameterList(global_arrRegParameters, Array('','','','OpenDeclaration',actioncriteria,'ViewOGDSAD',''));
+    else if(BillType ==  global_BillType.Transit)
+    setParameterList(global_arrRegParameters, Array('','','','OpenDeclaration',actioncriteria,'ViewTransitBillOGDSAD',''));
+    }
+    else if ( BillType == global_BillType.Import)
+    {
+    sPageId = sDeclStateId =='SubToAuditor' ? 'ViewSAD' : 'SAD';
+    setParameterList(global_arrRegParameters, Array('','MoveToCreatedByDeclarationDocuments','','OpenDeclaration',actioncriteria,sPageId,''));
+    }
+    else if(BillType == global_BillType.Transit)
+    {
+
+    sPageId = sDeclStateId =='SubToAuditor' ? 'ViewTransitBillSAD' : 'TransitBillSAD';
+    setParameterList(global_arrRegParameters, Array('','MoveToCreatedByDeclarationDocuments','','OpenDeclaration',actioncriteria,sPageId,''));
+    }
+    else if( BillType == global_BillType.Export )
+    {
+    sPageId = sDeclStateId =='SubToAuditor' ? 'ViewDeclarationExportBill' : 'EditDeclarationExportBill';
+    setParameterList(global_arrRegParameters, Array('','MoveToCreatedByDeclarationDocuments','','OpenDeclarationExportBill',actioncriteria,sPageId,''));
+    }
+    pageSubmit(frm,false);
+    }
+
+    function callDeclVehiclesPopUp()
+    {
+      var sPageId = getParameter("pageid","");
+      var sActionPageId = MCgetAttribute('actionservice/actioncontrol/@actionpageid','');
+      var sDeclarationId = MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null);
+      var sStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId',null);
+      var sBillType  =  MCgetAttribute('data/Declarationsrecords/Declarations/@BillType','');
+      var sLoginPortId  =  MCgetAttribute('user/@LogInPortId','');
+      var RejectCount  =  MCgetAttribute('data/Declarationsrecords/Declarations/@RejectCount','');
+      var DeclDate = MCgetAttribute('data/Declarationsrecords/Declarations/@DecDateCreated','');
+      var DeclOwnerOrgId= MCgetAttribute('data/Declarationsrecords/Declarations/@OwnerOrgId','0');
+      var sIDDId = MCgetAttribute('data/Declarationsrecords/Declarations/@IDDDetailId','');
+      var sIDDStateId = MCgetAttribute('data/Declarationsrecords/IDDDetailsrecords/IDDDetails/@StateId','');
+      var sIDDReferenceType = MCgetAttribute('data/Declarationsrecords/IDDDetailsrecords/IDDDetails/@IDDReferenceType','');
+      var LoginPortId = MCgetAttribute('user/@LogInPortId','');
+      DeclDate = DeclDate.split('T')[0];
+      DeclDate = DeclDate.split('-')[2]+'-'+DeclDate.split('-')[1]+'-'+DeclDate.split('-')[0];
+      var CutOffDate  = 0;
+      if(DeclVechEnhancedCutOffDate[LoginPortId] != null &amp;&amp; DeclVechEnhancedCutOffDate[LoginPortId] != undefined)
+      CutOffDate = DeclVechEnhancedCutOffDate[LoginPortId][0];
+
+      if (sDeclarationId !='')
+      {
+        if(LoginPortId!=global_Locations.KWI)
+        {
+
+          if(CutOffDate != 0 &amp;&amp;
+          fnCheckDeclVechicleEnhancedPortsEnabled(sLoginPortId, DeclDate) &amp;&amp; (RejectCount == '' || RejectCount == 0 || (RejectCount != 0 &amp;&amp; bCompareDate(DeclDate,'&gt;=',CutOffDate))))
+          {
+            //LockupScreen('','ListDeclVehlEnhancedPopUpPg','ListDeclarationVehiclesEnhanced',sDeclarationId+'~'+sStateId+'~'+sBillType,850,500,true,false);
+            if(sActionPageId == 'BrReceiptsVwPg')
+            LockupScreen(sPageId,'ListBrDeclVehlEnhancedPopUpPg','ListDeclarationVehiclesEnhanced',sDeclarationId+'~'+sStateId+'~'+sBillType+'~'+sIDDId+'~'+sIDDStateId,1000,600,false,false);
+            else
+            LockupScreen(sPageId,'ListDeclVehlEnhancedPopUpPg','ListDeclarationVehiclesEnhanced',sDeclarationId+'~'+sStateId+'~'+sBillType+'~'+sIDDId+'~'+sIDDStateId,1000,600,false,false);
+          }
+          else
+          {
+            if(sActionPageId == 'BrReceiptsVwPg')
+            LockupScreen(sPageId,'ListDeclarationVehiclesReadOnlyPopUpPg','ListDeclarationVehicles',sDeclarationId+'~'+sStateId+'~'+sBillType+'~'+sIDDId+'~'+sIDDStateId,750,500,true,false);
+            else
+            LockupScreen(sPageId,'ListDeclarationVehiclesPopUpPg','ListDeclarationVehicles',sDeclarationId+'~'+sStateId+'~'+sBillType+'~'+sIDDId+'~'+sIDDStateId,750,500,true,false);
+          }
+        }
+        else
+        {
+          if(CutOffDate != 0 &amp;&amp; fnCheckDeclVechicleEnhancedPortsEnabled(sLoginPortId, DeclDate)  &amp;&amp; (RejectCount == '' || RejectCount == 0 || (RejectCount != 0 &amp;&amp; bCompareDate(DeclDate,'&gt;=',CutOffDate))))
+          {
+            if(sActionPageId == 'BrReceiptsVwPg')
+            LockupScreen(sPageId,'ListBrDeclVehlEnhancedPopUpPg','ListDeclarationVehiclesEnhanced',sDeclarationId+'~'+sStateId+'~'+sBillType+'~'+sIDDId+'~'+sIDDStateId,1000,600,false,false);
+            else
+            LockupScreen(sPageId,'ListDeclVehlEnhancedPopUpPg','ListDeclarationVehiclesEnhanced',sDeclarationId+'~'+sStateId+'~'+sBillType+'~'+sIDDId+'~'+sIDDStateId+'~'+sIDDReferenceType,850,500,true,false);
+          }
+          else
+          {
+            if(sActionPageId == 'BrReceiptsVwPg')
+            LockupScreen(sPageId,'ListDeclarationVehiclesReadOnlyPopUpPg','ListDeclarationVehicles',sDeclarationId+'~'+sStateId+'~'+sBillType+'~'+sIDDId+'~'+sIDDStateId,750,500,true,false);
+            else
+            LockupScreen(sPageId,'ListDeclarationVehiclesPopUpPg','ListDeclarationVehicles',sDeclarationId+'~'+sStateId+'~'+sBillType+'~'+sIDDId+'~'+sIDDStateId+'~'+ sIDDReferenceType,750,500,true,false);
+          }
+        }
+      }
+      return false;
+    }
+
+    function CheckPopup()
+    {
+    var sIsPopupAvailable = MCgetAttribute('data/Declarationsrecords/@IsPopupAvailable','');
+    //sIsPopupAvailable= '1';
+    if(sIsPopupAvailable=='1')
+    {
+    var oWindow;
+    oWindow = PopUp("","LockupScreen"+"IDDLockUpPg",900,300,true,false,null,null,null,null,true);
+    if(oWindow.document.activeElement.innerText =='')
+    {
+    oWindow.close();
+    }
+    else if(oWindow !='undefined' &amp;&amp; oWindow !=null)    
+                {
+                    oWindow.focus() ;
+                }
+          }
+            
+    }
+
+    <!--function viewBOL()
+    {
+    var sBillType  =  MCgetAttribute('data/Declarationsrecords/Declarations/@BillType','');
+    var sDeliveryOrderId = MCgetAttribute('data/Declarationsrecords/Declarations/@DeliveryOrderId',null);
+    var sDeclarationId = MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null);
+    if ( sBillType == global_BillType.Import)
+    {
+    LockupScreen('','DeclartionPopUp','ViewCargo',ProfileField('CargoView.DeliveryOrderId','text')+ '=\''+sDeliveryOrderId+ '\'',850,350,true,false);
+    }
+    else if(sBillType == global_BillType.Transit)
+    {
+    LockupScreen('','DeclartionPopUp','ViewCargo',ProfileField('CargoView.DeliveryOrderId','text') + '=\''+sDeliveryOrderId+ '\'',850,350,true,false);
+    }
+    else if( sBillType == global_BillType.Export )
+    {
+    LockupScreen('','DeclartionExpBillPopUp','ViewDeclarationDetails',ProfileField('Declarations.DeclarationId','text') + '=\''+sDeclarationId+ '\'',850,400,true,false);
+    }
+    }-->
+
+
+    function viewBOL()
+    {
+    var sBillType  =  MCgetAttribute('data/Declarationsrecords/Declarations/@BillType','');
+    var sDeliveryOrderId = MCgetAttribute('data/Declarationsrecords/Declarations/@DeliveryOrderId',null);
+    var sDeclarationId = MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null);
+    if ( sBillType == global_BillType.Import)
+    {
+    LockupScreen('','DeclartionPopUp','ViewCargo',ProfileField('CargoView.DeliveryOrderId','text')+ '=\''+sDeliveryOrderId+ '\'',850,450,true,false);
+    }
+    else if(sBillType == global_BillType.Transit)
+    {
+    LockupScreen('','DeclartionPopUp','ViewCargo',ProfileField('CargoView.DeliveryOrderId','text') + '=\''+sDeliveryOrderId+ '\'',850,450,true,false);
+    }
+    else if( sBillType == global_BillType.Export )
+    {
+    LockupScreen('','DeclartionExpBillPopUp','ViewDeclarationDetails',ProfileField('Declarations.DeclarationId','text') + '=\''+sDeclarationId+ '\'',850,450,true,false);
+    }
+    }
+
+
+    function disableInvFieldSuppMUnits()
+    {
+    var sRefInvId = MCgetAttribute('data/CommercialInvoicesrecords/CommercialInvoices/@RefInvId','');
+    if(sRefInvId!='' &amp;&amp; sRefInvId!=null )
+    {			      		
+			//HtmlElementById('SupplierName').disabled = true;
+			HtmlElementById('txtNWeightUOMDesc').disabled = true;			
+	        HtmlElementById('btnNWeightUOM').disabled = true;	
+            HtmlElementById('txtVolUOMDesc').disabled = true;	 
+            HtmlElementById('btnVolType').disabled = true;
+    }              
+}
+
+var totalpages;
+var iStartPage;
+var iEndPage;
+function _setPgRangeVal()
+{
+	iStartPage = document.forms['PageRange'].StartPage.value;
+	iEndPage = document.forms['PageRange'].EndPage.value;
+	
+	exp = new RegExp("^\\s*(\\d{1,3})?\\s*$");
+    m1 = iStartPage.match(exp);
+    m2= iEndPage.match(exp);
+    isValid =  ( (m1 != null)  &amp;&amp; (m1.length&lt;4) &amp;&amp; (m2 != null)  &amp;&amp; (m2.length&lt;4));	
+	iCounter= 1;
+	var im1= parseInt(m1);
+	var im2=parseInt(m2);
+	if (isValid &amp;&amp; im1&lt;=totalpages &amp;&amp;  im2&gt;=im1 &amp;&amp; im2&lt;=totalpages &amp;&amp; im2-im1&lt;=parseInt(iBatchPrintSize) &amp;&amp; im1 != 0 &amp;&amp; im2!=0 )
+    {
+    var ownerLocId = MCgetAttribute('user/@LogInPortId','');
+
+    //if ( __PrintBayanByTokenPorts.indexOf(ownerLocId) > -1  &amp;&amp; !IsRoleExist("PrintBayanOldTech") )
+    if (IsThisPCwithNewBayanPrinting()) 
+    {
+      var no_pages = (im2-im1)+1;
+      CallBayanPrintingNewTech(TokenID,im1,no_pages,totalpages); // sending token id, page start and number of pages.
+    }
+    else
+    {
+    var refid = HtmlElementById('DeclarationId').value;
+    
+    var sDataXml='&lt;Declarationsrecords&gt;&lt;Declarations StartPage="'+iStartPage +'" EndPage="'+ iEndPage +'"/&gt;&lt;/Declarationsrecords&gt;';
+    printHiddenView_p3('CustomsDeclaration Report',ProfileField('Declarations.DeclarationId','text') + '=\''+refid +'\'','','true','','','0.17,0.75,0.17,0.17','Fanfold 210 x 305 mm',iCounter,sDataXml,'true');
+    }
+    }
+    else
+    {
+    alert('Enter valid page range');
+    getPageRange();
+    }
+    }
+    function getPageRange(){
+    //var iStartPage = prompt('Enter Start Page','1');
+    //var iEndPage = prompt('Enter End Page',(parseInt(iBatchPrintSize) &gt;= totalpages) ? totalpages:iBatchPrintSize;
+    showPageInput(HtmlElementById('PrintPrePrintedBayan'),'BayanPageRange');
+    document.forms['PageRange'].StartPage.value= '1';
+    document.forms['PageRange'].EndPage.value= (parseInt(iBatchPrintSize) &gt;= totalpages) ? totalpages:iBatchPrintSize;
+}
+function CustomsDeclarationReport_NextRequest(iIndexer)
+{
+	var iCounter=1;
+	
+	//var total_times = MCgetAttribute('data/Declarationsrecords/Declarations/@BayanPageCount',1);
+	//var totalpages = MCgetAttribute('data/Declarationsrecords/Declarations/@NoBatches',1);
+    	var refid = HtmlElementById('DeclarationId').value;
+    	var sDataXml=''
+	var bShowDialog='true';
+	
+	if (totalpages &gt; (parseInt(iBatchPrintSize)+(iBatchPrintSize*.2))) 
+	{
+		iCounter= (iIndexer==0? total_times:iIndexer);
+		var iEndPage = (iBatchPrintSize*(total_times-iCounter+1));
+		var iStartPage = iEndPage- iBatchPrintSize+1;
+		iEndPage = (iEndPage&gt;totalpages? totalpages: iEndPage);
+		if(iCounter!=total_times) bShowDialog = 'false';
+		sDataXml = '&lt;Declarationsrecords&gt;&lt;Declarations StartPage="'+iStartPage +' " EndPage="'+ iEndPage +'"/&gt;&lt;/Declarationsrecords&gt;';
+	  }
+	  printHiddenView_p3('CustomsDeclaration Report',ProfileField('Declarations.DeclarationId','text') + '=\''+refid +'\'','','true','','','0.17,0.75,0.17,0.17','Fanfold 210 x 305 mm',iCounter,sDataXml,bShowDialog);
+	  }
+
+	  function IsThisPCwithNewBayanPrinting() {
+	  try {
+	  var fso = new ActiveXObject("Scripting.FileSystemObject");
+	  // var path = "C:\\Program Files\\MicroClearServices\\MicroClearPrint\\MicroClearPrint.exe";
+	  if (fso.FileExists(__BynPrnSmartClientAppPath))
+	  return true;
+	  else
+	  return false;
+	  } catch (exe) {
+	  return false;
+	  }
+	  }
+
+	  function _hideDiv()
+	  {
+	  var htmlDiv = HtmlElementById('BayanPageRange');
+	  htmlDiv.style.display = 'none';
+	  }
+
+	  function ValidateExporterNameAgainstQuota(thisObj){
+	  var frmObj = thisObj.form;
+	  var NoOfQuotasAssociated = MCgetAttribute('data/Declarationsrecords/Declarations/@NoOfQuotasAssociated','');
+	  var sIsOnlinePayAvail = MCgetAttribute('data/Declarationsrecords/Declarations/@IsOnlinePayAvail',null);
+	  if(sIsOnlinePayAvail == "1")
+	  {
+	  SiteAlert(msgDictionary('errImpExpoOP'));
+	  return false;
+	  }
+
+	  if (NoOfQuotasAssociated > 0)
+	  {
+	  ShowPageException('QMSQuotaDeclExcep');
+	  return false;
+	  }
+	  else
+	  {
+	  LockupScreen(frmObj.name,'SearchDOConsignee','SearchConsignee','',750,420,true,false);
+	  }
+	  }
+
+	  /*
+	  function ValidateBayanAgainstQuota(thisObj){
+	  var frmObj = thisObj.form;
+	  var NoOfQuotasAssociated = MCgetAttribute('data/Declarationsrecords/Declarations/@NoOfQuotasAssociated','');
+	  var OldConsigneeId = MCgetAttribute('data/Declarationsrecords/Declarations/@OldConsigneeId','');
+	  var OldPortsOfLoadingId = MCgetAttribute('data/Declarationsrecords/DeclarationDetailsrecords/DeclarationDetails/@OldPortsOfLoadingId','');
+	  var OldDestinationId = MCgetAttribute('data/Declarationsrecords/DeclarationDetailsrecords/DeclarationDetails/@OldDestinationId','');
+
+	  if(HtmlElementById('ConsigneeId')!=null)
+	  var NewConsigneeId =  HtmlElementById('ConsigneeId').value;
+
+	  if(HtmlElementById('PortsOfLoadingId')!=null)
+	  var NewPortsOfLoadingId =  HtmlElementById('PortsOfLoadingId').value;
+
+	  if(HtmlElementById('DestinationId')!=null)
+	  var NewDestinationId =  HtmlElementById('DestinationId').value;
+
+
+	  if (NoOfQuotasAssociated > 0)
+	  {
+	  if(OldConsigneeId != NewConsigneeId)
+	  {
+	  ShowPageException('QMSExporterChange');
+	  if(document.getElementById('consigneebrowsebutton')!=null)
+	  document.getElementById('consigneebrowsebutton').focus();
+	  return false;
+	  }
+	  if(OldPortsOfLoadingId != NewPortsOfLoadingId)
+	  {
+	  ShowPageException('QMSPortChange');
+	  if(document.getElementById('LoadingPort')!=null)
+	  document.getElementById('LoadingPort').focus();
+	  return false;
+	  }
+
+	  if(OldDestinationId != NewDestinationId)
+	  {
+	  ShowPageException('QMSDESTcontChange');
+	  if(document.getElementById('DischargePort')!=null)
+	  document.getElementById('DischargePort').focus();
+	  return false;
+	  }
+	  if((OldConsigneeId == NewConsigneeId) &amp;&amp; (OldPortsOfLoadingId == NewPortsOfLoadingId) &amp;&amp;(OldDestinationId == NewDestinationId))
+    {
+    return true;
+    }
+    }
+    else
+    {
+    return true;
+    }
+    } */
+
+function ValidateTempExpiryDate() 
+			{ 
+			
+
+				var dDate= MCgetAttribute('data/Declarationsrecords/Declarations/@TempAdmissionExpiredOn',''); 
+				dDate = dateFormatConverter(dDate,ConvertType_user2server);
+				
+				if(dDate != null &amp;&amp; dDate != '') 
+				{ 
+					if(bCompareDate(dDate.substring(0,10),'&lt;',userFormatCurrDate()))
+	  {
+	  alert(msgDictionary('TempExpiryDateExpired'));
+	  return false;
+	  }
+	  else
+	  {
+	  LockupScreen('','ImpConfrPg','ListCCPImportPopup',ProfileField('CCPLocations.LocationId','text') + '=\''+MCgetAttribute('data/Declarationsrecords/Declarations/@LocationId',null)+'\''+' AND '+ ProfileField('CustomsControlProcedures.DeclarationMode','text') + '='+ '\'NEW\'',500,200,true,true);
+
+	  }
+	  }
+	  }
+
+	  function EnableDisableReceiptBreakDown()
+	  {
+	  var sDeclarationDate = MCgetAttribute('data/Declarationsrecords/Declarations/@DecDateCreated', '');
+	  var sPaymentFlag = false;
+
+	  if(sDeclarationDate != null &amp;&amp; isKNETOnlinePaymentEnabled(sDeclarationDate))
+    {
+    sPaymentFlag = true;
+    }
+
+    if(sPaymentFlag == false)
+    {
+    if(HtmlElementById('PrintDeclarationReceipts')!=null) HtmlElementById('PrintDeclarationReceipts').style.display='none';
+    if(HtmlElementById('ViewDeclarationReceipts')!=null) HtmlElementById('ViewDeclarationReceipts').style.display='none';
+    }
+    else
+    {
+    var sStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId', '');
+    var sRejCount = MCgetAttribute('data/Declarationsrecords/Declarations/@RejectCount', '0');
+
+    if(IsRolesAvailable("ClearingAgent,ReadOnly,DR Broker,DirectReleaseAuditor,PWCSupport,Customs Operation,AuditorSupervisor,BWHClearingAgent"))
+    {
+    if(sStateId == 'DeclarationCreatedState' || sStateId == 'DeclarationCancelledState' || sStateId == 'CancelledByReqState' || (sStateId == 'DutyCalculatedState'  &amp;&amp; sRejCount &lt;= 0))
+	  {
+	  if(HtmlElementById('PrintDeclarationReceipts')!=null) HtmlElementById('PrintDeclarationReceipts').style.display='none';
+	  if(HtmlElementById('ViewDeclarationReceipts')!=null) HtmlElementById('ViewDeclarationReceipts').style.display='none';
+	  }
+	  else
+	  {
+	  if(HtmlElementById('PrintDeclarationReceipts')!=null) HtmlElementById('PrintDeclarationReceipts').style.display='';
+	  if(HtmlElementById('ViewDeclarationReceipts')!=null) HtmlElementById('ViewDeclarationReceipts').style.display='';
+	  }
+	  }
+	  else
+	  {
+	  if(HtmlElementById('PrintDeclarationReceipts')!=null) HtmlElementById('PrintDeclarationReceipts').style.display='none';
+	  if(HtmlElementById('ViewDeclarationReceipts')!=null) HtmlElementById('ViewDeclarationReceipts').style.display='none';
+	  }
+
+	  }
+
+	  var sRows= MCgetAttribute('data/Declarationsrecords/Declarations/Paymentsrecords/Payments/PaymentTransactionsrecords/@TotalRecordsFetched','');
+	  for(i=0; i &lt; sRows; i++)
+    {
+    if(HtmlElementById('List_PaymentInfoSAD'+'_'+i+'_TypeId')!=null)
+    {
+    if(MCgetAttribute('actionservice/actioncontrol/@pageid','')=='ViewDeclarationExportBill' || MCgetAttribute('actionservice/actioncontrol/@pageid','')=='ViewSAD' || MCgetAttribute('actionservice/actioncontrol/@pageid','')=='ViewTransitBillSAD')
+    {
+    NOCval = HtmlElementById('List_PaymentInfoSAD'+'_'+i+'_TypeId');
+
+    if(IsRolesAvailable("Customs Operation,ClearingAgent,ReadOnly,DirectReleaseAuditor,DR Broker,BWHClearingAgent"))
+    {
+    if(NOCval.innerText!=global_PaymentType.Bank_Receipt &amp;&amp; !sPaymentFlag)
+    {
+    if(HtmlElementById('List_PaymentInfoSAD'+'_'+i+'_ReceiptBreakDown')!=null)
+    {
+    HtmlElementById('List_PaymentInfoSAD'+'_'+i+'_ReceiptBreakDown').style.display = 'none';
+    }
+    }
+    else if(NOCval.innerText==global_PaymentMode.GCC_Maqasa)
+    {
+    if(HtmlElementById('List_PaymentInfoSAD'+'_'+i+'_ReceiptBreakDown')!=null)
+    {
+    HtmlElementById('List_PaymentInfoSAD'+'_'+i+'_ReceiptBreakDown').style.display = 'none';
+    }
+    }
+    else if(NOCval.innerText==global_PaymentType.Bank_Receipt)
+    {
+    if(HtmlElementById('List_PaymentInfoSAD'+'_'+i+'_ReceiptBreakDown')!=null)
+    {
+    HtmlElementById('List_PaymentInfoSAD'+'_'+i+'_ReceiptBreakDown').style.display = '';
+    }
+    }
+
+    if(NOCval.innerText != global_PayMode.NewEPayment)
+    {
+    if(HtmlElementById('List_PaymentInfoSAD'+'_'+i+'_PrintOnlineReceipt')!=null)
+    {
+    HtmlElementById('List_PaymentInfoSAD'+'_'+i+'_PrintOnlineReceipt').style.display = 'none';
+    }
+    }
+    else if (NOCval.innerText == global_PayMode.NewEPayment)
+    {
+    if( IsRolesAvailable("ClearingAgent,DirectReleaseAuditor,DR Broker,BWHClearingAgent"))
+    {
+    if(HtmlElementById('List_PaymentInfoSAD'+'_'+i+'_PrintOnlineReceipt')!=null)
+    {
+    HtmlElementById('List_PaymentInfoSAD'+'_'+i+'_PrintOnlineReceipt').style.display = '';
+    }
+    }
+    else
+    {
+    if(HtmlElementById('List_PaymentInfoSAD'+'_'+i+'_PrintOnlineReceipt')!=null)
+    {
+    HtmlElementById('List_PaymentInfoSAD'+'_'+i+'_PrintOnlineReceipt').style.display = 'none';
+    }
+    }
+    }
+    }
+    else
+    {
+    if(HtmlElementById('List_PaymentInfoSAD'+'_'+i+'_ReceiptBreakDown')!=null)
+    {
+    HtmlElementById('List_PaymentInfoSAD'+'_'+i+'_ReceiptBreakDown').style.display = 'none';
+    }
+    }
+    }
+    else
+    {
+    if(HtmlElementById('List_PaymentInfoSAD'+'_'+i+'_ReceiptBreakDown')!=null)
+    {
+    HtmlElementById('List_PaymentInfoSAD'+'_'+i+'_ReceiptBreakDown').style.display = 'none';
+    }
+    }
+    }
+    }
+    }
+
+
+
+    function ShowChasisDupMsgRow(){
+    var sCode;
+    //var frm = document.forms['AddDeclarationsExportFr'];
+    var sStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId','');
+    if((IsRoleExist("Customs Operation") || IsRoleExist("ReadOnly")) &amp;&amp; (sStateId !='DutyCalculatedState' &amp;&amp; sStateId !='DeclarationCreatedState' &amp;&amp; sStateId !='DeclarationRejected' &amp;&amp; sStateId !='DeclarationModifiedState'))
+	{
+		var strXml = xmlServiceDocument.selectSingleNode(rootNodeName +'/' + dataNodeName +'/Declarationsrecords');
+		strXml = OuterXML(strXml);
+   		var MyReq = new SilentActionCall('CheckDuplicateChasisNo','' ,fireOnCondition,strXml,'servicedocument','actionservice/actioncontrol');
+   		MyReq.StartRequest();
+   		//MyReq = null;   		
+		function fireOnCondition(xmlRes)
+		{
+			if(xmlRes[0].getAttribute('nextactioncriteria') != null)
+				sCode = xmlRes[0].getAttribute('nextactioncriteria');
+			if(sCode!=null &amp;&amp;  sCode!='')
+    {
+    var msg= HtmlElementById("lblChasisDupMsg").innerText;
+    msg=msg+sCode;
+    // HtmlElementById("lblChasisDupMsg").innerHTML=msg;
+    HtmlElementById("lblChasisDupMsg").innerHTML = '&lt;div style="overflow:auto;word-wrap:normal;"&gt;' + msg.replace(/,/g, ', ') + '&lt;/div&gt;';
+    HtmlElementById("ChasisDupAlertMsgRow").style.display='';
+    }
+    else
+    {
+    HtmlElementById("ChasisDupAlertMsgRow").style.display='none';
+    }
+    }
+    //}
+    }
+    else
+    {
+    HtmlElementById("ChasisDupAlertMsgRow").style.display='none';
+    }
+    //return true;
+    }
+    function CheckForMaqasaPayment()
+    {
+    var isMaqasa = MCgetAttribute('data/Declarationsrecords/Declarations/@Maqasa','');
+    var sCCPId = MCgetAttribute('data/Declarationsrecords/Declarations/@CustomsControlProcedureId','');
+    if (isMaqasa == '1' &amp;&amp; (sCCPId == global_CustomsControlProcedures.STATISTICAL_BILL_FOR_LAND || sCCPId == global_CustomsControlProcedures.STATISTICAL_BILL_FOR_SEA || sCCPId == global_CustomsControlProcedures.STATISTICAL_BILL_FOR_AIR))
+    {
+    var xmlObj = xmlServiceDocument.selectNodes("servicedocument/data/Declarationsrecords/Declarations/Paymentsrecords/Payments/PaymentTransactionsrecords/PaymentTransactions[@selected='1']");
+
+    if ( xmlObj.length > 0 )
+    {
+    for(var i=0;i&lt;xmlObj.length;i++)
+    {
+    if(xmlObj[i].getAttributeNode("TypeId").nodeValue==global_PaymentMode.GCC_Maqasa)
+    {
+    alert(msgDictionary('errGCCMaqasa'));
+    return false;
+    }
+    }
+    }
+    else
+    {
+    alert(msgDictionary('NoRowsSelected'));
+    return false;
+    }
+    }
+    return true;
+    }
+
+    function CheckCDate()
+    {
+    var ccpId=MCgetAttribute('data/Declarationsrecords/Declarations/@CustomsControlProcedureId','');
+    if(ccpId == global_CustomsControlProcedures.STATISTICAL_BILL_FOR_AIR || ccpId == global_CustomsControlProcedures.STATISTICAL_BILL_FOR_SEA
+    || ccpId == global_CustomsControlProcedures.STATISTICAL_BILL_FOR_LAND)
+    {
+    var strXml = xmlServiceDocument.selectSingleNode(rootNodeName + "/" + dataNodeName + "/Declarationsrecords");
+    strXml = OuterXML(strXml);
+    var myReq = new SilentActionCall('CheckForMaqasaCutOffDate','' ,fireOnCondition,strXml,'servicedocument','actionservice/actioncontrol');
+    //var myReq = new SilentActionCall('GetDeclarationDate','',fireOnCondition,strXml,'servicedocument','actionservice/exception');
+    myReq.StartRequest();
+    //myReq = null;
+    function fireOnCondition(xmlRes)
+    {
+    var sFlag;
+    if(xmlRes[0].getAttribute('nextactioncriteria') != null)
+    //sCode = xmlRes[0].getAttribute('nextactioncriteria');
+    sFlag = xmlTemp.selectSingleNode(rootNodeName+"/"+'actionservice/actioncontrol').getAttribute('nextactioncriteria');
+    if(sFlag=="True")
+    {
+    if(HtmlElementById('IsMaqasa') != null)
+    HtmlElementById('IsMaqasa').disabled='true';
+    if(HtmlElementById('MaqasaAttachments')!=null)
+    HtmlElementById('MaqasaAttachments').style.display = 'none';
+    }
+    return false;
+    }
+    }
+    }
+
+    //Added By Sthanikella for MOCI Link Action
+    function OpenMOCIDetatils(objType)
+    {
+    if(IsRoleExist("Customs Operation") || IsRoleExist("ReadOnly"))
+    {
+    if(objType=='MOCIImpDetails')
+    {
+    var MOCIImportLicId = MCgetAttribute('data/Declarationsrecords/Declarations/@MOCIImportLicId','')
+    var WSIMPLICInterfaceName = MCgetAttribute('data/Declarationsrecords/Declarations/@WSIMPLICInterfaceName','');
+    if(WSIMPLICInterfaceName == 'INQUIREIMPORTLICDETAILSV2'){    LockupScreen('','MOCIImpLicDetailsV2VwPg','OpenMociImpLicDetailsV2',ProfileField('MOCIImportLic.MOCIImportLicId','text') + '=\''+MOCIImportLicId+'\'',800,600,true,false);return false;}
+    else{
+    LockupScreen('','MOCIImpLicDetailsVwPg','OpenMociImpLicDetails',ProfileField('MOCIImportLic.MOCIImportLicId','text') + '=\''+MOCIImportLicId+'\'',800,600,true,false);return false;
+    }
+    }
+    else if(objType=='MOCIDetails')
+    {
+    var MOCICOMMLICDetId = MCgetAttribute('data/Declarationsrecords/Declarations/@MOCICOMMLICDetId','')
+    var WSCOMMLICInterfaceName = MCgetAttribute('data/Declarationsrecords/Declarations/@WSCOMMLICInterfaceName','');
+    if(WSCOMMLICInterfaceName == 'INQUIRECOMMLICDETAILSV2'){    LockupScreen('','MOCICOMMLICDetailsV2VwPg','OpenMociCommLicDetailsV2',ProfileField('MOCICOMMLICDetails.MOCICOMMLICDetId','text') + '=\''+MOCICOMMLICDetId+'\'',800,600,true,false);return false;}
+    else{
+
+    LockupScreen('','MOCICOMMLICDetailsVwPg','OpenMociCommLicDetail',ProfileField('MOCICOMMLICDetails.MOCICOMMLICDetId','text') + '=\''+MOCICOMMLICDetId+'\'',800,600,true,false);return false;
+    }
+    }
+    }
+    }
+
+
+
+    function HideActionsForBoundedInboundBayan()
+    {
+    var CCPID = MCgetAttribute('data/Declarationsrecords/Declarations/@CustomsControlProcedureId','');
+    if(CCPID==GBL_CustomsControlProcedures.AIRPORT.IMPORT_BILL.AIR_BWHInbound || CCPID==GBL_CustomsControlProcedures.SEAPORT.IMPORT_BILL.SEA_BWHInbound)
+    {
+    //Associate Duty button hide for new bwh ccp
+    if(HtmlElementById ("browsebutton")!=null)HtmlElementById ("browsebutton").style.display = 'none';
+    //hide links Ministry Response Dashboard,OGD History,Additional Document Request,Sample Collection Request,Goods Detection Request,Payment Transaction new bwh ccp
+    if(HtmlElementById ("lnkOGADashboardRpt")!=null)HtmlElementById ("lnkOGADashboardRpt").style.display = 'none';
+    if(HtmlElementById ("OGDHistoryBy")!=null)HtmlElementById ("OGDHistoryBy").style.display = 'none';
+    if(HtmlElementById ("lnkAddDocReq")!=null)HtmlElementById ("lnkAddDocReq").style.display = 'none';
+    if(HtmlElementById ("SampleCollectionRequest")!=null)HtmlElementById ("SampleCollectionRequest").style.display = 'none';
+    if(HtmlElementById ("GoodsDetectionItemsList")!=null)HtmlElementById ("GoodsDetectionItemsList").style.display = 'none';
+    if(HtmlElementById ("paymentTransaction")!=null)HtmlElementById ("paymentTransaction").style.display = 'none';
+    //hide Additional Document Request,Print Deposit Promissory Note,Print Deposit Promissory Note (PP) buttons for New BWH CCP
+    if(HtmlElementById ("lnkAddDocReq")!=null)HtmlElementById ("lnkAddDocReq").style.display = 'none';
+    if(HtmlElementById ("PrintPromissary")!=null)HtmlElementById ("PrintPromissary").style.display = 'none';
+    if(HtmlElementById ("PrintPromissaryPP")!=null)HtmlElementById ("PrintPromissaryPP").style.display = 'none';
+    }
+    }
+
+
+
+
+    function FormatMociLinks()
+    {
+    //Added By Sthanikella for MOCI Link Appearance
+
+    //var IsTitleRequired = false;
+    //Added By Naveen Chunchu For Industrial License Links Appearance
+    HideIndusTrialOnLoad();
+
+    var sCCPId = MCgetAttribute('data/Declarationsrecords/Declarations/@CustomsControlProcedureId','');
+    var IsDRBayan=false;
+    if(sCCPId == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_SEAPORT || sCCPId == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_AIRPORT || sCCPId == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_LANDPORT)
+    IsDRBayan=true;
+
+    var StatusTitle=false;
+
+
+    if (!IsDRBayan &amp;&amp; (IsRoleExist("Customs Operation") || IsRoleExist("ClearingAgent")|| IsRoleExist("ReadOnly")|| IsRoleExist("BWHClearingAgent")))
+    {
+    <!--var StatusTitle=false;-->
+			var msgid="";
+			var sCommFlag = false;
+			var sImpFlag = false;
+			var sCommNoofDays = global_MOCI.Comm_Lic_NoOfDays_Validation;
+			var sImpNoofDays = global_MOCI.Imp_Lic_NoOfDays_Validation;
+
+			if (HtmlElementById("lblCommLicExpStatus") != null)
+			{
+				var MOCICommLicExpDays = MCgetAttribute('data/Declarationsrecords/Declarations/@MOCICommLicExpDays', -999)
+				if (MOCICommLicExpDays &gt;= sCommNoofDays){ msgid="MOCIErr09";sCommFlag=true;}
+				else if (MOCICommLicExpDays &gt; 1) msgid="MOCIErr03";//Commercial licence got expired, Renew with in five working days from the date of expiry.
+				else if (MOCICommLicExpDays == 1)	msgid="MOCIErr04"; //Commercial licence going to expired, Renew with in five working days from the date of expiry.
+						
+				if(msgid!="")
+				{				
+					HtmlElementById("lblCommLicExpStatus").innerHTML = msgDictionary(msgid);
+					StatusTitle=true;
+				}
+				else
+				{
+					if(HtmlElementById("RowMOCICommLicExpStatus")!=null)	HtmlElementById("RowMOCICommLicExpStatus").style.display = "none";
+				}
+				msgid="";
+			}
+			if (HtmlElementById("lblImpLicExpStatus") != null)
+			{
+				var MOCIImpLicExpDays = MCgetAttribute('data/Declarationsrecords/Declarations/@MOCIImpLicExpDays', -999)			
+				if (MOCIImpLicExpDays &gt;= sImpNoofDays) {msgid="MOCIErr10";sImpFlag=true;}
+				else if (MOCIImpLicExpDays &gt; 1) msgid="MOCIErr06"; //Importer licence got expired, Renew with in five working days from the date of expiry. 			
+				else if (MOCIImpLicExpDays == 1)	msgid="MOCIErr07"; //Importer licence going to expired, Renew with in five working days from the date of expiry. 							
+				
+				if(msgid != "")
+				{			
+						if(sImpFlag &amp;&amp; sCommFlag)
+						{
+							msgid="MOCIErr11";
+							HtmlElementById("lblCommLicExpStatus").innerHTML = msgDictionary(msgid);
+							if(HtmlElementById("RowMOCIImpLicExpStatus")!=null)	HtmlElementById("RowMOCIImpLicExpStatus").style.display = "none";
+						}
+						else
+						{
+							HtmlElementById("lblImpLicExpStatus").innerHTML = msgDictionary(msgid);
+							StatusTitle=true;
+						}
+				}
+				else
+				{
+					if(HtmlElementById("RowMOCIImpLicExpStatus")!=null)	HtmlElementById("RowMOCIImpLicExpStatus").style.display = "none";
+				}
+			}
+			<!--if(!StatusTitle  &amp;&amp; HtmlElementById("RowMOCILicStatus")!=null)
+			{
+				HtmlElementById("RowMOCILicStatus").style.display = "none";
+			}-->
+		}
+		if(!StatusTitle  &amp;&amp; HtmlElementById("RowMOCILicStatus")!=null)
+		{
+			HtmlElementById("RowMOCILicStatus").style.display = "none";
+		}
+
+		var IsTitleRequired = false;
+		if (!IsDRBayan &amp;&amp; (IsRoleExist("Customs Operation") || IsRoleExist("ReadOnly")))
+    {
+    var MOCICOMMLICDetId = MCgetAttribute('data/Declarationsrecords/Declarations/@MOCICOMMLICDetId', '')
+    var MOCIImportLicId = MCgetAttribute('data/Declarationsrecords/Declarations/@MOCIImportLicId', '')
+    var ErrorNoMOCIComm = MCgetAttribute('data/Declarationsrecords/Declarations/@ErrorNoMOCIComm', -999)
+    var ErrorNoMOCIImp = MCgetAttribute('data/Declarationsrecords/Declarations/@ErrorNoMOCIImp', -999)
+    if (ErrorNoMOCIComm == 1)
+    {
+    if (HtmlElementById("lblMOCICommStatus") != null)
+    {
+    var CommercialLicenseNo= MCgetAttribute('data/Declarationsrecords/OrganizationsForDeclarationrecords/OrganizationsForDeclaration/@CommercialLicenseNo', '')
+    var lblMOCICommStatus = HtmlElementById("lblMOCICommStatus");
+    lblMOCICommStatus.style.display = ""
+    lblMOCICommStatus.innerHTML = lblMOCICommStatus.innerText.replace("@0", CommercialLicenseNo);
+    }
+    if (HtmlElementById("MOCICommDetails") != null)	HtmlElementById("MOCICommDetails").style.display = "none";
+    IsTitleRequired=true;
+    }
+    else if (ErrorNoMOCIComm == 0 &amp;&amp; MOCICOMMLICDetId != '' &amp;&amp; MOCICOMMLICDetId != '0') 
+			{
+				if (HtmlElementById("MOCICommDetails") != null)	HtmlElementById("MOCICommDetails").style.display = "";
+				if (HtmlElementById("lblMOCICommStatus") != null)	HtmlElementById("lblMOCICommStatus").style.display = "none";
+				IsTitleRequired=true;
+			} 
+			else 
+			{			
+				if (HtmlElementById("RowMOCICommLic") != null)	HtmlElementById("RowMOCICommLic").style.display = "none";
+			}
+
+			if (ErrorNoMOCIImp == 1) 
+			{
+				if (HtmlElementById("lblMOCIImpStatus") != null)
+				{	
+					var ImporterLicenseNo= MCgetAttribute('data/Declarationsrecords/OrganizationsForDeclarationrecords/OrganizationsForDeclaration/@ImporterLicenseNo', '')
+					var lblMOCIImpStatus = HtmlElementById("lblMOCIImpStatus");
+					lblMOCIImpStatus.style.display = ""
+					lblMOCIImpStatus.innerHTML = lblMOCIImpStatus.innerText.replace("@0", ImporterLicenseNo);
+				}
+				if (HtmlElementById("MOCIImpDetails") != null)	HtmlElementById("MOCIImpDetails").style.display = "none";
+					IsTitleRequired=true;
+			} 
+			else if (ErrorNoMOCIImp == 0 &amp;&amp; MOCIImportLicId != '' &amp;&amp; MOCIImportLicId != '0') 
+			{
+				if (HtmlElementById("MOCIImpDetails") != null)	HtmlElementById("MOCIImpDetails").style.display = "";
+				if (HtmlElementById("lblMOCIImpStatus") != null) HtmlElementById("lblMOCIImpStatus").style.display = "none";
+					IsTitleRequired=true;
+			} 
+			else 
+			{
+				if (HtmlElementById("RowMOCIImpLic") != null)	HtmlElementById("RowMOCIImpLic").style.display = "none";			
+			}
+		}
+		else 
+		{				
+			if (HtmlElementById("RowMOCIImpLic") != null)	HtmlElementById("RowMOCIImpLic").style.display = "none";
+			if (HtmlElementById("RowMOCICommLic") != null)	HtmlElementById("RowMOCICommLic").style.display = "none";
+		}
+		if(!IsTitleRequired &amp;&amp; HtmlElementById("RowMOCITittle") != null)
+    {
+    HtmlElementById("RowMOCITittle").style.display = "none";
+    }
+    }
+
+
+    function HideIndusTrialOnLoad()
+    {
+    var sCCPId = MCgetAttribute('data/Declarationsrecords/Declarations/@CustomsControlProcedureId','');
+    var IsDRBayan=false;
+    if(sCCPId == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_SEAPORT || sCCPId == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_AIRPORT || sCCPId == global_CustomsControlProcedures.DIRECT_RELEASE_BILL_FOR_LANDPORT)
+    IsDRBayan=true;
+
+    var isAuditor=IsRoleExist("Customs Operation");
+    var isIndustrial = MCgetAttribute('data/Declarationsrecords/OrganizationsForDeclarationrecords/OrganizationsForDeclaration/@IsIndustrial','');
+    if(IsDRBayan || !isAuditor || isIndustrial != '1')
+    {
+    if(HtmlElementById('RowIndTittle')!=null)
+    HtmlElementById('RowIndTittle').style.display = 'none';
+    if(HtmlElementById('RowIndLic')!=null)
+    HtmlElementById('RowIndLic').style.display = 'none';
+    if(HtmlElementById('lnkIndLic')!=null)
+    HtmlElementById('lnkIndLic').style.display = 'none';
+    }
+    }
+
+    function openIndLic()
+    {
+    var isAuditor=IsRoleExist("Customs Operation");
+    var isIndustrial = MCgetAttribute('data/Declarationsrecords/OrganizationsForDeclarationrecords/OrganizationsForDeclaration/@IsIndustrial','');
+    var OrgId = MCgetAttribute('data/Declarationsrecords/OrganizationsForDeclarationrecords/OrganizationsForDeclaration/@OrganizationId','');
+    var IndLicNo= MCgetAttribute('data/Declarationsrecords/OrganizationsForDeclarationrecords/OrganizationsForDeclaration/@IndustrialLicenseNo','');
+    var isManual = MCgetAttribute('data/Declarationsrecords/OrganizationsForDeclarationrecords/OrganizationsForDeclaration/@IsManual','');
+
+    if(isAuditor &amp;&amp; isIndustrial == '1')
+    {
+    if( isManual !='1')
+    LockupScreen('','IndustrialLicenseVwPg','OpenIndLicDetails',IndLicNo+'~'+OrgId,1000,500,true,false);
+    else if( isManual =='1')
+    LockupScreen('','ViewIndustrialOrganization','ViewOrganization',ProfileField('Organizations.OrganizationId','text') + '=N\''+ OrgId +'\'',850,350,true,false);
+
+    }
+    }
+
+    function ShowDeclarationDateCreatedAlertMessage()
+    {
+
+    if(IsRolesAvailable("ChiefInspector,InspectorSupervisor,Customs APRT MGR,Customs PRT MGR,Inspector,Customs Operation,SecureBayanBlocking,RMSAdmin"))
+    {
+    var sDeclNumber=MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationNumber',null);
+    <!--var sCurrentDate =new Date(userDateFormat(dServerDate.getFullYear(), dServerDate.getDate(), dServerDate.getMonth()+1))-->
+    var declCreateddays;
+    var sDeclDateCreatedServerFrmt=MCgetAttribute('data/Declarationsrecords/Declarations/@DecDateCreated',null);;
+    if(sDeclDateCreatedServerFrmt != null &amp;&amp; sDeclDateCreatedServerFrmt != '')
+    {
+
+      var sDeclDateTimeCreatedSplit=sDeclDateCreatedServerFrmt.split('T');
+      var sDeclDateCreatedSplit=sDeclDateTimeCreatedSplit[0].split('-');
+      var sDeclDateCreated=new Date(userDateFormat(sDeclDateCreatedSplit[0],sDeclDateCreatedSplit[2],sDeclDateCreatedSplit[1]));
+      if(sDeclNumber=='' )
+      {
+      var sCurrentDate =new Date(userDateFormat(dServerDate.getFullYear(), dServerDate.getDate(), dServerDate.getMonth()+1))
+      declCreateddays=(sCurrentDate-sDeclDateCreated)/(1000*60*60*24);
+      }
+      else
+      {
+      var sDeclDateCreatedSubmitFrmt=MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationDate',null);
+      var sDeclarationCreatedafterSubmit=sDeclDateCreatedSubmitFrmt.split('T');
+      var sDeclDateSubmitSplit=sDeclarationCreatedafterSubmit[0].split('-');
+      var sdeclSubmitDate =new Date(userDateFormat(sDeclDateSubmitSplit[0],sDeclDateSubmitSplit[2],sDeclDateSubmitSplit[1]));
+      declCreateddays=(sdeclSubmitDate-sDeclDateCreated)/(1000*60*60*24);
+      }
+      <!--var sDeclDateTimeCreatedSplit=sDeclDateCreatedServerFrmt.split('T');
+      var sDeclDateCreatedSplit=sDeclDateTimeCreatedSplit[0].split('-');
+      var sDeclDateCreated=new Date(userDateFormat(sDeclDateCreatedSplit[0],sDeclDateCreatedSplit[2],sDeclDateCreatedSplit[1]));
+      declCreateddays=(sCurrentDate-sDeclDateCreated)/(1000*60*60*24);-->
+      if(declCreateddays== 0)
+      {
+      $("#lblDeclCreatedDaysalert").html(subscrip(msgDictionary('errDecldateZeroDays'),new Array(declCreateddays.toString())));
+      $('#lblDeclCreatedDaysalert').css('color', 'limegreen'); // message will display in green color
+      $("#DeclarationCreatedMessageAlert").show();
+      //$("#DeclarationCreatedMessageAlert").hide();
+      }
+      else  if( declCreateddays &lt;=2 &amp;&amp; declCreateddays &gt;0 )
+      {
+      $("#lblDeclCreatedDaysalert").html(subscrip(msgDictionary('errDecldateCreatedAlertMessage'),new Array(declCreateddays.toString())));
+      $('#lblDeclCreatedDaysalert').css('color', 'limegreen'); // message will display in green color
+      $("#DeclarationCreatedMessageAlert").show();
+      }
+      else if( declCreateddays &gt;2 &amp;&amp; declCreateddays &lt;=4 )
+      {
+      $("#lblDeclCreatedDaysalert").html(subscrip(msgDictionary('errDecldateCreatedAlertMessage'),new Array(declCreateddays.toString())));
+      $('#lblDeclCreatedDaysalert').css("color", "Orange"); // message will display in orange color
+      $("#DeclarationCreatedMessageAlert").show();
+      }
+      else if( declCreateddays &gt; 4 )
+      {
+      $("#lblDeclCreatedDaysalert").html(subscrip(msgDictionary('errDecldateCreatedAlertMessage'),new Array(declCreateddays.toString())));
+      $("#DeclarationCreatedMessageAlert").show();
+      }
+      else
+      {
+      $("#DeclarationCreatedMessageAlert").hide();
+      }
+      }
+      else
+      {
+      $("#DeclarationCreatedMessageAlert").hide();
+      }
+    }
+    }
+
+
+
+    function ValidateManufacturer(text) {
+    var MinLength = 5;
+    var SpecialChars = "\/().,&amp;\\-";
+    var AllowedChars = "a-zA-Z\u0600-\u06FF";
+    var NumericChars = "0-9";
+    var SpaceChar = "\\s";
+    var Exp = new RegExp("[" + SpaceChar + SpecialChars + "]", "g");
+    var stext = text.replace(Exp,'');
+    if (!(stext.length &lt; MinLength)) {
+    Exp = new RegExp("^[" + NumericChars + SpaceChar + SpecialChars + "]+$", "g");
+    if (!(Exp.test(text))) {
+    Exp = new RegExp("[" + SpecialChars + "]", "g");
+    var AllowedExp = new RegExp("[" + AllowedChars + NumericChars + "]", "g");
+    if (((text.match(Exp) || []).length) &lt; ((text.match(AllowedExp) || []).length)) {
+	  Exp = new RegExp("^[" + AllowedChars + SpaceChar + NumericChars + SpecialChars + "]+$", "g");
+	  return Exp.test(text);
+	  }
+	  }
+	  }
+	  return false;
+	  }
+
+
+
+	  //Added by naveen to Restrict changing Importer/Exporter Once Online Payment Is Initiated.
+	  function BrowseConsignee(frmObj)
+	  {
+	  var sIsOnlinePayAvail=MCgetAttribute('data/Declarationsrecords/Declarations/@IsOnlinePayAvail',null);
+	  if(sIsOnlinePayAvail == "1")
+	  {
+	  SiteAlert(msgDictionary('errImpExpoOP'));
+	  return false;
+	  }
+	  else
+	  {
+	  LockupScreen(frmObj.name,'SearchDOConsignee','SearchConsignee','',750,400,true,false);
+	  }
+	  }
+	  //End by naveen to Restrict changing Importer/Exporter Once Online Payment Is Initiated.
+
+
+	  //function ValidatePaymnet(sDutyType)
+	  //{
+	  //var sflag = true;
+	  //if(sDutyType.indexOf (',1,')>-1)
+	  //{
+	  //if(($("#CustomsDuty")!=null &amp;&amp; $("#CustomsDuty").val()!='') || ($("#HandlingCharges")!=null &amp;&amp; $("#HandlingCharges").val()!='') || ($("#Storage")!=null &amp;&amp; $("#Storage").val()!='') || ($("#Penalties")!=null &amp;&amp; $("#Penalties").val()!='') || ($("#Certificates")!=null &amp;&amp; $("#Certificates").val()!='') || ($("#Printing")!=null &amp;&amp; $("#Printing").val()!='') || ($("#Others")!=null &amp;&amp; $("#Others").val()!=''))
+	  //{
+	  //SiteAlert(msgDictionary('errEpayValidateRevenue'));
+	  //sflag = false;
+	  //return false;
+	  //}
+	  //}
+	  //else if(sDutyType.indexOf (',2,')>-1)
+	  //{
+	  //if($("#Guarantees")!=null &amp;&amp; $("#Guarantees").val()!='')
+	  //{
+	  //SiteAlert(msgDictionary('errEpayValidateDeposit'));
+	  //sflag = false;
+	  //return false;
+	  //}
+	  //}
+	  //return sflag;
+	  //}
+
+
+	  function ValidatePaymnet(sDutyType)
+	  {
+		  var sflag = true;
+		  if(sDutyType.indexOf (',1,')>-1)
+		  {
+			  if(($("#CustomsDuty")!=null &amp;&amp; $("#CustomsDuty").val()!='' &amp;&amp; $("#CustomsDuty").val()&gt;0) || ($("#HandlingCharges")!=null &amp;&amp; $("#HandlingCharges").val()!='' &amp;&amp; $("#HandlingCharges").val()&gt;0) || ($("#Storage")!=null &amp;&amp; $("#Storage").val()!='' &amp;&amp; $("#Storage").val()&gt;0) || ($("#Penalties")!=null &amp;&amp; $("#Penalties").val()!='' &amp;&amp; $("#Penalties").val()&gt;0) || ($("#Certificates")!=null &amp;&amp; $("#Certificates").val()!='' &amp;&amp; $("#Certificates").val()&gt;0) || ($("#Printing")!=null &amp;&amp; $("#Printing").val()!='' &amp;&amp; $("#Printing").val()&gt;0) || ($("#Others")!=null &amp;&amp; $("#Others").val()!='' &amp;&amp; $("#Others").val()&gt;0))
+			  {
+				  SiteAlert(msgDictionary('errEpayValidateRevenue'));
+				  sflag = false;
+				  return false;
+			  }
+		  }
+		  else if(sDutyType.indexOf (',2,')>-1)
+		  {
+			  if($("#Guarantees")!=null &amp;&amp; $("#Guarantees").val()!='' &amp;&amp; $("#Guarantees").val()&gt;0)
+    {
+    SiteAlert(msgDictionary('errEpayValidateDeposit'));
+    sflag = false;
+    return false;
+    }
+    }
+    return sflag;
+    }
+
+
+
+    function ValidateReceipts()
+    {
+    var sErrorCode='';
+    var refid = HtmlElementById('DeclarationId').value;
+
+    var strXml = xmlServiceDocument.selectSingleNode(rootNodeName + "/" + dataNodeName + "/Declarationsrecords");
+    strXml = OuterXML(strXml)
+    var MyReq = new SilentActionCall('ValidateReceiptServices','',fireOnConditionReceipts,strXml,'servicedocument','actionservice/exception');
+    MyReq.StartRequest();
+    MyReq = null;
+
+    function fireOnConditionReceipts(xmlRes)
+    {
+    if(xmlRes[0].getAttribute('code')!='')
+    {
+    sErrorCode = xmlRes[0].getAttribute('code');
+    if(sErrorCode == 'RECDEER')
+    {
+    var sErrorMsg = msgDictionary('RECDEER');
+    alert(sErrorMsg);
+    return false;
+    }
+    else if(sErrorCode == 'RECDE22')
+    {
+    var sErrorMsg = msgDictionary('RECDE22');
+    alert(sErrorMsg);
+    return false;
+    }
+    else if(sErrorCode == 'RECDE23')
+    {
+    var sErrorMsg = msgDictionary('RECDE23');
+    alert(sErrorMsg);
+    return false;
+    }
+    else if (sErrorCode == 'errInsNotPaid')
+    {
+    var sErrorMsg = msgDictionary('errInsNotPaid');
+    alert(sErrorMsg);
+    return false;
+    }
+    else if(sErrorCode.indexOf('SFEENP')==0)
+    {
+    var sErrorMsg = msgDictionary(sErrorCode);
+    alert(sErrorMsg);
+    return false;
+    }
+    else if (sErrorCode == 'errServicesNotPaid')
+    {
+    var sParams = xmlRes[0].getAttribute('context_value');
+    var sErrorMsg = msgDictionary('errAppServicesNotPaid').replace('@0',sParams);
+    alert(sErrorMsg);
+    return false;
+    }
+    if(sErrorCode!='') return false;
+    }
+    }
+    if(sErrorCode!='') {return false;}
+    return true;
+    }
+
+
+    function callAdditionalDocumentsRequest()
+    {
+    var sDeclId= HtmlElementById('DeclarationId').value;
+    var sStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId',null);
+    MCsetAttribute('actionservice /actioncontrol/@templateid',sDeclId);
+    MCsetAttribute('actionservice/actioncontrol/@previousactioncriteria', sStateId);
+    LockupScreen('ViewSAD','AdditionalDocRequestLsPg','ListAdditionalDocRequest',ProfileField('AdditionalDocRequest.DeclarationId','text') + '=\''+MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null)+'\'',1200,500,true,false);
+    return false;
+    }
+
+    function checkIDD(action)
+    {
+    var sIDDDetailId = MCgetAttribute("data/Declarationsrecords/Declarations/@IDDDetailId",null);
+    if(sIDDDetailId == null || sIDDDetailId == '')
+      return true;
+      var sStateId= MCgetAttribute('data/Declarationsrecords/IDDDetailsrecords/IDDDetails/@StateId','');
+      var sDecStatelId = MCgetAttribute("data/Declarationsrecords/Declarations/@StateId",null);
+      var sGovt = MCgetAttribute("data/Declarationsrecords/IDDDetailsrecords/IDDDetails/@IsGovt",null);
+      var sIDDRefType = MCgetAttribute("data/Declarationsrecords/IDDDetailsrecords/IDDDetails/@IDDReferenceType",null);
+
+      //if(sIDDDetailId == '' || sIDDDetailId ==null || sIDDRefType == 'HB')
+      //{
+      //  if (sIDDRefType == 'HB')
+      // {
+      //   if(document.getElementById('consigneebrowsebutton')!=null)document.getElementById('consigneebrowsebutton').disabled=true;
+      //  }
+      //    return true;
+      //}
+
+      if(sIDDRefType != null &amp;&amp; sIDDRefType == 'HB')
+    {
+      if((action =='EditConsignee'))
+      {
+        alert(msgDictionary('IDD001'));
+        return false;
+      }
+      return true;
+    }
+
+
+
+    if((sIDDDetailId != '' &amp;&amp; sIDDDetailId !=null))
+    {
+    if(action == 'EditConsignee')
+    {
+    if(sStateId == 'IDDDetailsRejectedState' || sStateId == 'IDDDetailsCancelledState')
+    {
+    return true;
+    }
+    else if(sStateId == 'IDDDetailsApprovedtate' || sStateId == 'IDDDetailsReleasedState')
+    {
+    alert(msgDictionary('IDD001'));
+    return false;
+    }
+    else
+    {
+    alert(msgDictionary('IDD001'));
+    return false;
+    }
+    }
+    if(action == 'Edit')
+    {
+    //if(sStateId == 'IDDDetailsRejectedState' || sStateId == 'IDDDetailsCancelledState')
+    if((sStateId == 'IDDDetailsRejectedState' || sStateId == 'IDDDetailsCancelledState') || ((sStateId == 'IDDDetailsApprovedtate' || sStateId == 'IDDDetailsReleasedState') &amp;&amp; sGovt == '1'))
+                {
+                    return true;
+                }
+                else 
+                {
+                      alert(msgDictionary('IDD001'));
+                      return false;
+                }
+            }  
+            if(action == 'DutyCalculate')
+            {
+                if((sStateId == 'IDDDetailsRejectedState' || sStateId == 'IDDDetailsCancelledState'  || sStateId == 'IDDDetailsReleasedState' || sStateId == 'IDDDetailsClosedState' || ((sStateId == 'IDDDetailsApprovedtate' || sStateId == 'IDDDetailsReleasedState') &amp;&amp; sGovt == '1')) &amp;&amp; ( sDecStatelId == 'DeclarationRejected' || sDecStatelId == 'DeclarationModifiedState' ||  sDecStatelId == 'DeclarationCreatedState' ||  sDecStatelId == 'DutyCalculatedState'))
+    {
+    return true;
+    }
+    else if((sStateId == 'IDDDetailsApprovedtate' || sStateId == 'IDDDetailsReleasedState') &amp;&amp; sGovt == '1')
+    {
+    return true;
+    }
+
+    else
+    {
+    alert(msgDictionary('IDD001'));
+    return false;
+    }
+    }
+    if(action == 'Submit')
+    {
+    if(sStateId == 'IDDDetailsRejectedState' || sStateId == 'IDDDetailsReleasedState' || sStateId == 'IDDDetailsCancelledState' || sStateId == 'IDDDetailsClosedState')
+    {
+    return true;
+    }
+    else
+    {
+    alert(msgDictionary('IDD004'));
+    return false;
+    }
+    }
+    if(action == 'DeleteCINV' || action == 'NewCINV' || action == 'DeleteCINV' || action == 'NewCII')
+    {
+    //if(sStateId == 'IDDDetailsRejectedState' || sStateId == 'IDDDetailsCancelledState')
+    if((sStateId == 'IDDDetailsRejectedState' || sStateId == 'IDDDetailsCancelledState') || ((sStateId == 'IDDDetailsApprovedtate' || sStateId == 'IDDDetailsReleasedState') &amp;&amp; sGovt == '1'))
+                {
+                    return true;
+                }
+                else 
+                {
+                      alert(msgDictionary('IDD007'));
+                      return false;
+                }
+            }
+            if(action == 'Cancel')
+            {
+                if(IsRoleExist("Customs PRT MGR") || IsRoleExist("Customs APRT MGR"))
+                {
+                      if(sStateId == 'IDDDetailsCreatedState' || sStateId == 'IDDDetailsCancelledState' || sStateId == 'IDDDetailsRejectedState' || sStateId == 'IDDDetailsSubmittedState')
+                    {
+                        return true;
+                    }
+                    else 
+                    {
+                          alert(msgDictionary('IDD006'));
+                          return false;
+                    }
+                }
+                else
+                {
+                    if(sStateId == 'IDDDetailsCreatedState' || sStateId == 'IDDDetailsCancelledState' || sStateId == 'IDDDetailsRejectedState')
+                    {
+                        return true;
+                    }
+                    else 
+                    {
+                          alert(msgDictionary('IDD006'));
+                          return false;
+                    }
+                }
+            }              
+        }
+    }     
+
+	  function HidenShowIDDExitsAlert()
+    {
+      var sIDDDetailId = MCgetAttribute("data/Declarationsrecords/Declarations/@IDDDetailId",null);
+       if(sIDDDetailId != '' &amp;&amp;  sIDDDetailId !=null)
+    {
+    $('#IDDExists').show();
+    }
+    else
+    $('#IDDExists').hide();
+    }
+
+    function HideControlsForIDDForCII()
+    {
+    var sIDDDetailId = MCgetAttribute("data/Declarationsrecords/Declarations/@IDDDetailId",null);
+    var sStateId= MCgetAttribute('data/Declarationsrecords/IDDDetailsrecords/IDDDetails/@StateId','');
+    var sIDDRefType = MCgetAttribute("data/Declarationsrecords/IDDDetailsrecords/IDDDetails/@IDDReferenceType",null);
+    var sGovt = MCgetAttribute("data/Declarationsrecords/IDDDetailsrecords/IDDDetails/@IsGovt",'');
+    //if((sStateId == 'IDDDetailsRejectedState' || sStateId == 'IDDDetailsCancelledState') || ((sStateId == 'IDDDetailsApprovedtate' || sStateId == 'IDDDetailsReleasedState') &amp;&amp; sGovt == '1'))
+    if((sIDDDetailId != '' &amp;&amp; sIDDDetailId !=null &amp;&amp; sIDDRefType !='HB') &amp;&amp; (sStateId != 'IDDDetailsRejectedState' &amp;&amp; sStateId != 'IDDDetailsCancelledState') &amp;&amp; sGovt !='1' )
+    {
+    _disableControlls('AddItemFromB2Form','hscodebrowsebutton','hscode','description','country','countrybrowsebutton','oldunitprice','noofpackages','quantity');
+    _disableControlls('weight','IsRestricted','RestrictionRelRef','RelRef','IsExempted','txtExemptionBnf','IncludeGCCDeposit','volume','quantity1','TaricDescription');
+    _disableControlls('hscodebrowsebutton','OtherReleases','ExemptionRef','txtExemptionName','btnExemptionType','ExemptionDetails','txtRestrictionName','btnRestrictionType','Gross1','txtqtytype');
+    _disableControlls('cmdConvert','txtpackagetype','btnPackageType','Manufacturer','BatterySize','AntiDumpingManufacturer');
+    }
+    }
+
+    function silentCallIDD()
+    {
+
+    var frm = document.forms['TaxesandDuties'];
+    var strXml = '';
+    var strXml = xmlServiceDocument.selectSingleNode(rootNodeName + "/" + dataNodeName + "/Declarationsrecords");
+    strXml = OuterXML(strXml)
+
+    var myReq = new SilentActionCall('CheckDecValidationsForIDD','',fireOnConditionIfExists,strXml,'servicedocument','actionservice/exception');
+    myReq.StartRequest();
+    myReq = null;
+
+
+    var sIDDDetailId = MCgetAttribute("data/Declarationsrecords/Declarations/@IDDDetailId", null);
+    if(sIDDDetailId != null &amp;&amp; sIDDDetailId != "")
+    {
+    var sDeclId = MCgetAttribute("data/Declarationsrecords/Declarations/@DeclarationId", null);
+    MCsetAttribute('data/Declarationsrecords/@IsPopupAvailable','1');
+    LockupScreen('TaxesandDuties', 'IDDLockUpPg', 'GetNewIDD', sDeclId, 800, 400, true, true);
+    }
+    else
+    {
+
+    function fireOnConditionIfExists(xmlRes)
+    {
+    var sErrorCode = xmlRes[0].getAttribute('code');
+    if (sErrorCode == '')
+    {
+    var sDeclId = MCgetAttribute("data/Declarationsrecords/Declarations/@DeclarationId", null);
+    //var sIDDDetailId = MCgetAttribute("data/Declarationsrecords/Declarations/@IDDDetailId", null);
+    MCsetAttribute('data/Declarationsrecords/@IsPopupAvailable','1');
+    LockupScreen('TaxesandDuties', 'IDDLockUpPg', 'GetNewIDD', sDeclId, 800, 400, true, true);
+    }
+    else if (sErrorCode == 'errDecVehContNotAssociated')
+    {
+    var sPlateNo = xmlRes[0].getAttribute('context_value');
+    var msg = (msgDictionary('errDecVehContNotAssociated')).replace(/@0/g, sPlateNo);
+    alert(msg);
+    }
+    else if (sErrorCode == 'DDC0026')
+    {
+    var sInvoiceNo = xmlRes[0].getAttribute('context_value');
+    var msg = (msgDictionary('DDC0026')).replace(/@0/g, sInvoiceNo);
+    alert(msg);
+    }
+    else if(sErrorCode == 'DDC0014')
+    {
+    alert(msgDictionary('IDDINV001'));
+    return false;
+    }
+    else if (sErrorCode == 'DDC0075')
+    {
+    alert(msgDictionary('IDDGW001'));
+    return false;
+    }
+    else if (sErrorCode == 'DDC00147')
+    {
+    alert(msgDictionary('IDDRDoc'));
+    return false;
+    }
+    else
+    {
+    alert(msgDictionary(sErrorCode));
+    return false;
+    }
+    }
+    }
+    }
+
+
+    function onclickReferedLink()
+    {
+    var sDeclarationId=MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId');
+    ShowRSViewerForPage('GetRefDeclarationsReport', '[Declarations].[DeclarationId]=N\'' + sDeclarationId + '\''); return false;
+    }
+
+
+    function IsDrBroker() {
+    var sStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId', '');
+    var sDRBroker = IsRoleExist("DR Broker");
+    if (sDRBroker &amp;&amp; !sStateId=='SubToAuditor') {
+    if (HtmlElementById("next") != null) HtmlElementById("next").style.display = 'none';
+    }
+    }
+
+
+    function ValidateConsigneeForRSF()
+    {
+    var sOrg = HtmlElementById('ConsigneeId').value;
+    var strBrXml = xmlServiceDocument.selectSingleNode(rootNodeName + "/" + dataNodeName + "/Declarationsrecords");
+    strBrXml = OuterXML(strBrXml);
+    strBrXml = strBrXml + '&lt;Declarationrecords&gt;&lt;Declaration OrganizationId="' + sOrg + '"  /&gt; &lt;/Declarationrecords&gt;';
+    var MyReq = new SilentActionCall('RSFValidateConsignee', '', fireOnVerifyCondition, strBrXml, 'servicedocument', 'actionservice/exception');
+    var bReturn = true;
+    MyReq.StartRequest();
+    MyReq = null;
+    function fireOnVerifyCondition(xmlRes)
+    {
+    if (xmlRes[0].getAttribute('code') != null)
+    {
+    if (xmlRes[0].getAttribute('code') == 'RSFValConErrMsg')
+    {
+    SiteAlert(msgDictionary('RSFValConErrMsg'));
+    bReturn = false;
+    return false;
+    }
+    else
+    return true;
+    }
+    }
+    return bReturn;
+    }
+
+    function HidebuttonsforCustomspaycollections()
+    {
+      sListcount = xmlServiceDocument.selectNodes("servicedocument/data/Declarationsrecords/Declarations/Paymentsrecords/Payments/PaymentTransactionsrecords/PaymentTransactions");
+      var sactionpageid = MCgetAttribute('actionservice/actioncontrol/@actionpageid', '');
+      if (IsRoleExist("Customs Reviewer") &amp;&amp; (sactionpageid == 'CustomsPaymentCollectionsVwPg' || sactionpageid == 'CustomsOnlinePaymentsVwPg' || sactionpageid == 'CustomsPaymentCollectionsLsPg' || sactionpageid == 'CustomsOnlinePaymentsLsPg' || sactionpageid == 'ORDCustomsPaymentCollectionsVwPg' || sactionpageid == 'ORDCustomsPaymentCollectionsLsPg'))
+	  {
+	  $("#prnAtt,#btnCompose,#btnRunPrintPreview").hide();
+	  $("#close").show();
+	  for (var i=0; sListcount.length > i; i++)
+	  {
+	  if(HtmlElementById('List_'+'PaymentInfoSAD'+'_'+i+'_'+'NotUsed')!=null)
+	  {
+	  HtmlElementById('List_'+'PaymentInfoSAD'+'_'+i+'_'+'NotUsed').style.display = 'none';
+	  }
+	  }
+	  }
+	  else
+	  {
+	  $("#prnAtt,#btnCompose,#btnRunPrintPreview").show();
+	  $("#close").hide();
+	  }
+	  }
+
+	  function viewGoodsDetection_Export()
+	  {
+	  var sTempDec = MCgetAttribute('data/Declarationsrecords/Declarations/@TempDeclNumber',null);
+	  var sDecId = MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId',null);
+	  var sDOId = MCgetAttribute('data/Declarationsrecords/Declarations/@DeliveryOrderId',null);
+	  var sConsigneeId = MCgetAttribute('data/Declarationsrecords/Declarations/@ConsigneeId',null);
+	  var sConsigneeType = MCgetAttribute('data/Declarationsrecords/Declarations/@ConsigneeType',null);
+	  var sStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId',null);
+	  var sManifestId = '';<!--MCgetAttribute('data/Declarationsrecords/DeliveryOrdersrecords/DeliveryOrders/@ManifestId',null);-->
+      var sTempData = sDecId + '~' + sDOId + '~' + sConsigneeId + '~' + sConsigneeType + '~' +sManifestId + '~' + sStateId + '~' + sDecId + '~' + 'EDC' + '~' +sTempDec;
+      MCsetAttribute('actionservice/actioncontrol/@templateid',sTempData);
+      LockupScreen('TaxesandDuties','GoodsDetectionLookupLsPg','ListGoodsDetection',ProfileField('GoodsDetectionForm.DeclarationId','text') + '=\''+sDecId+'\'',950,600,true,false);
+    }
+
+
+function HideRMSInfo()
+    {     
+        var sroleExists = IsRolesExist("Customs Operation,DirectReleaseAuditor,AuditorSupervisor,Customs PRT MGR,Customs APRT MGR,DirectReleaseAuditorSupervisor,Inspector,InspectorSupervisor,ChiefInspector,ReadOnly");
+        var sChannel = MCgetAttribute('data/Declarationsrecords/Declarations/@Channel','');
+        var objCell = HtmlElementById('chnlLight');
+        if(sroleExists &amp;&amp; sChannel !='' &amp;&amp; objCell != null)
+    {
+    var sImageURL = objCell.innerHTML;
+    if(sChannel == GBL_Types.RMSChannelTypes.RED)
+    {
+
+    sImageURL = sImageURL.replace("BlueIcon_RMS","RedIcon _RMS");
+    }
+    if(sChannel == GBL_Types.RMSChannelTypes.GREEN)
+    {
+    sImageURL = sImageURL.replace("BlueIcon_RMS","GreenIcon_RMS");
+    }
+    if(sChannel == GBL_Types.RMSChannelTypes.YELLOW)
+    {
+    sImageURL = sImageURL.replace("BlueIcon_RMS","YellowIcon_RMS");
+    }
+    objCell.innerHTML = sImageURL;
+    }
+    else
+    {
+    if(HtmlElementById('chnlLight')!=null)
+    HtmlElementById('chnlLight').style.display = 'none';
+    if(HtmlElementById('chnlCaption')!=null)
+    HtmlElementById('chnlCaption').style.display = 'none';
+    }
+    if(sroleExists)
+    {
+    if(HtmlElementById('AssesReport')!=null)
+    HtmlElementById('AssesReport').style.display = '';
+    if(HtmlElementById('lnkAssessmentDetails')!=null)
+    HtmlElementById('lnkAssessmentDetails').style.display = '';
+    }
+    else
+    {
+    if(HtmlElementById('AssesReport')!=null)
+    HtmlElementById('AssesReport').style.display = 'none';
+    if(HtmlElementById('lnkAssessmentDetails')!=null)
+    HtmlElementById('lnkAssessmentDetails').style.display = 'none';
+    }
+    if(HtmlElementById('chnlLight')!=null)
+    HtmlElementById('chnlLight').style.display = 'none';
+    }
+
+
+    function CallDeclarationAEOList()
+    {
+    var sDeclId = MCgetAttribute('data/Declarationsrecords/Declarations/@DeclarationId','');
+    MCsetAttribute('actionservice/actioncontrol/@templateid',sDeclId);
+
+    var baseformanme='DeclartionAEOAssociate'
+    var sStateId = MCgetAttribute('data/Declarationsrecords/Declarations/@StateId');
+    if(!(sStateId =='DeclarationCreatedState'|| sStateId =='DutyCalculatedState'  || sStateId =='DeclarationRejected'  || sStateId =='DeclarationModifiedState'))
+    {
+    baseformanme='DeclartionAEOAssociatehide';
+    }
+    LockupScreen(baseformanme,'DeclarationAEOListLsPg','ListDeclarationAEOList',sDeclId,1100,600,true,false);return false;
+    }
+
+    $(window).load(function () {
+    var OGDExists = MCgetAttribute('data/Declarationsrecords/Declarations/@AEOListExists','n');
+    if(OGDExists == 'y')
+    {
+    $('#AEOListExistsRow').show();
+    }
+    else
+    {
+    $('#AEOListExistsRow').hide();
+    }
+    var KWOGDExists = MCgetAttribute('data/Declarationsrecords/Declarations/@KuwaitAEOListExists','n');
+    if(KWOGDExists == 'y')
+    {
+    $('#KuwaitAEOListExistsRow').show();
+    }
+    else
+    {
+    $('#KuwaitAEOListExistsRow').hide();
+    }
+
+    });
+
+  </Script>
+</ScriptModule>
